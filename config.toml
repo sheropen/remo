@@ -1,0 +1,50 @@
+# PATH
+DATABASE_DIR = "data/chroma"
+SERP_DIR = "data/serp"
+WEBPAGE_DIR = "data/webpage"
+OUTPUT_DIR = "data/output/test"
+LOG_DIR = "log"
+
+
+
+# Embedding
+# EMBEDDING_MODEL = "/home/junhao/projects/dataset/checkpoints/all-MiniLM-L6-v2-continued/checkpoint-1333115"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+
+# Retriever
+MAX_WEBPAGE = 3
+MAX_QUERY = 2
+MAX_SUBTOPIC = 3
+MAX_SEARCH_DEPTH = 2
+
+# Planner
+MIN_MEMORY_UNIT_TO_EXPLORE = 10
+MAX_WRITE_DEPTH = 2
+MAX_CLUSTER_SUMMARIZE_MEMORY_UNIT = 300
+
+# Writer
+MIN_MEMORY_UNIT_FOR_WRITING = 5
+
+# Data Structure
+SIMILARITY_THRESHOLD = 0.05
+
+
+# CONSTANTS
+EXCLUDE_DOMAIN_LIST = ["wikipedia.org", "youtube.com", ".pdf"]
+EXCLUDE_SECTION_LIST = [
+    "introduction",
+    "overview",
+    "see also",
+    "references",
+    "external links",
+    "further reading",
+    "footnotes",
+    "notes",
+    "bibliography",
+    "citations",
+    "gallery",
+    "sources",
+    "additional information",
+    "supplementary materials",
+    "conclusion",
+    "appendix",]

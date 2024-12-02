@@ -1,0 +1,8 @@
+*.ipynb
+**/__pycache__/
+*.code-workspace
+.env
+secret.toml
+data/
+log/
+scripts/ipynb/
