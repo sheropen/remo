@@ -8,8 +8,8 @@ LOG_DIR = "log"
 
 
 # Embedding
-# EMBEDDING_MODEL = "/home/junhao/projects/dataset/checkpoints/all-MiniLM-L6-v2-continued/checkpoint-1333115"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "/home/junhao/projects/dataset/checkpoints/all-MiniLM-L6-v2-continued/checkpoint-1333115"
+# EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Retriever
 MAX_WEBPAGE = 3

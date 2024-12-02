@@ -74,16 +74,21 @@ class WriterAgent:
 
         return article
 
-    def write_section(self, section_name: str, layer: int) -> Optional[Article]:
+    def write_section(self, full_section_name: str, layer: int) -> Optional[Article]:
         """Write a single section using retrieved memory units."""
+        section_name = full_section_name.split("//")[-1]
         memory_unit_list = self.memory.retrieve_information(
-            section_name, constraint={"tag": section_name}, k=100
+            section_name,
+            constraint={"tag": full_section_name},
+            k=100,
         )
 
         if len(memory_unit_list) > self.MIN_MEMORY_UNIT_FOR_WRITING:
             # Generate section content from memory units
             section_content = self.generate_section_content(
-                topic=self.topic, section_name=section_name, fact_list=memory_unit_list
+                topic=self.topic,
+                section_name=full_section_name,
+                fact_list=memory_unit_list,
             ).content
 
             return Article.from_text(

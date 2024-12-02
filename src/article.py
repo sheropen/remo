@@ -120,7 +120,7 @@ class Sentence:
 
         result = content_without_citations.strip()
 
-        if show_citation_numbers:
+        if show_citation_numbers and self.doc_id_list:
             unique_doc_ids = sorted(set(self.doc_id_list))
 
             result += "["
@@ -267,7 +267,9 @@ class Article:
                 )
                 article.add_subsection(subsection)
                 continue
-
+            elif para_text.strip() == "":
+                i += 1
+                continue
             # Handle regular paragraph
             else:
                 paragraph = Paragraph()
@@ -400,11 +402,7 @@ class Article:
 
         # Handle section title
         if self.layer != 0:
-            title = (
-                self.title.split("//")[-1]
-                if "//" in self.title
-                else self.title.split("/")[-1]
-            )
+            title = self.title.split("//")[-1]
             result += f"{'#' * self.layer} {title}\n"
 
         # Handle lead section and paragraphs

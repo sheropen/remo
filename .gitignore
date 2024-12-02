@@ -5,4 +5,5 @@
 secret.toml
 data/
 log/
+*.log
 scripts/ipynb/
