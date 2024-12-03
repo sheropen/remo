@@ -52,7 +52,9 @@ def main(file_path=None, skip_research=False, skip_outline=False):
     articles = []
     for topic in get_topics(file_path):
         output_filename = Parser.safe_title(topic.strip())
-        topic_path = os.path.join(config.OUTPUT_DIR, "txt", f"{output_filename}.txt")
+        topic_path = os.path.join(
+            config.OUTPUT_DIR, "raw_txt", f"{output_filename}.txt"
+        )
 
         if os.path.exists(topic_path):
             print(f"Skipping {topic.strip()} - output file already exists")

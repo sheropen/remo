@@ -2,6 +2,7 @@
 **/__pycache__/
 *.code-workspace
 .env
+config.toml
 secret.toml
 data/
 log/

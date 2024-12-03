@@ -5,10 +5,13 @@ import json
 import logging
 import os
 import re
-
+import sys
 from fastchat.conversation import get_conv_template
 from transformers import AutoTokenizer, LlamaForCausalLM
 from evaluation_trim_length import process_document
+
+sys.path.append("../../src")
+from utils import Parser
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -208,7 +211,9 @@ def main(args):
         topics = read_topic_list(args.topic_list)
     else:
         topics = get_topics_from_directory(args.input_dir)
-    
+
+    topics = [Parser.safe_title(topic) for topic in topics]
+
     logger.info(f"Found {len(topics)} topics to evaluate")
 
     all_results = {}
@@ -322,7 +327,11 @@ if __name__ == "__main__":
     parser.add_argument("--tokenizer", default="meta-llama/Llama-2-7b-chat-hf")
     parser.add_argument(
         "--model",
-        choices=["kaist-ai/prometheus-13b-v1.0", "kaist-ai/prometheus-7b-v1.0", "prometheus-eval/prometheus-7b-v2.0"],
+        choices=[
+            "kaist-ai/prometheus-13b-v1.0",
+            "kaist-ai/prometheus-7b-v1.0",
+            "prometheus-eval/prometheus-7b-v2.0",
+        ],
         default="kaist-ai/prometheus-13b-v1.0",
         help="Model name to use. If model_path provided, will look for model in that directory",
     )
