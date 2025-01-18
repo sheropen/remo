@@ -1,0 +1,14 @@
+*.ipynb
+*__pycache__/
+
+
+# Ignore sensitive files
+.env
+*.log
+*.pem
+*.key
+
+# Ignore generated directories
+/data/
+/logs/
+/temp/
