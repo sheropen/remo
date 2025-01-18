@@ -1,3 +1,5 @@
+Replace the values in the `env.sample` file with your own values, and save it as `.env`.
+
 ```
 python src/scripts/deep_research.py "<prompt>" 
 ```
