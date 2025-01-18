@@ -28,7 +28,7 @@ class SectionAssigner(dspy.Signature):
     
     
 class Memory:
-    def __init__(self, topic: str, engine: Union[dspy.dsp.LM, dspy.dsp.HFModel] = None):
+    def __init__(self, topic: str, engine: Union[dspy.dsp.LM, dspy.dsp.HFModel] = None, force_recreate: bool = False):
         self.topic = topic
         self.engine = engine
 
@@ -53,6 +53,12 @@ class Memory:
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name, embedding_function=sentence_transformer_ef
         )
+        
+        if force_recreate:
+            self.chroma_client.delete_collection(collection_name)
+            self.collection = self.chroma_client.get_or_create_collection(
+                name=collection_name, embedding_function=sentence_transformer_ef
+            )
         
         self.assigner = dspy.ChainOfThought(SectionAssigner)
 
@@ -117,6 +123,7 @@ class Memory:
             
         return clustered_docs
     
+    @timer
     def label_information(self, labels: List[str], constraint: dict = None):
         """Label information with given labels"""
         

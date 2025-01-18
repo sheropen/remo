@@ -63,7 +63,7 @@ def recursive_research_subtopic(topic, summary, layer=1):
         subtopics = planner.generate_subtopics(topic=topic, summary=summary)[:MAX_SUBTOPIC]
         subtopics = [f"{topic}//{subtopic}" for subtopic in subtopics]
         with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(recursive_research_subtopic, subtopic, layer+1) for subtopic in subtopics]
+            futures = [executor.submit(recursive_research_subtopic, subtopic, summary, layer=layer+1) for subtopic in subtopics]
             for future in futures:
                 _memory_units, _note_dict = future.result()
                 memory_units.extend(_memory_units)
@@ -119,7 +119,7 @@ def bootstrap(topic: str):
     return summary
 
 @timer
-def main(prompt, skip_research=False, skip_outline=False):
+def main(prompt, skip_research=False, skip_outline=False, force_recreate=False):
     topic = planner.convert_prompt_to_topic(prompt=prompt)
     logger.info(f"Article Topic: {topic}")
     
@@ -127,7 +127,7 @@ def main(prompt, skip_research=False, skip_outline=False):
     logger.info(f"Summary: {summary}")
     
     # memory construction
-    memory = Memory(topic=topic, engine=lm)
+    memory = Memory(topic=topic, engine=lm, force_recreate=force_recreate)
     if not skip_research:
         memory_units, note_dict = recursive_research_subtopic(topic=topic, summary=summary)
         memory.insert_information(memory_units=memory_units)
@@ -184,6 +184,6 @@ if __name__ == "__main__":
     parser.add_argument('prompt', type=str, help='Research prompt')
     parser.add_argument('--skip-research', action='store_true', help='Skip research phase')
     parser.add_argument('--skip-outline', action='store_true', help='Skip outline generation')
-    
+    parser.add_argument('--force-recreate', action='store_true', help='Force recreate memory')
     args = parser.parse_args()
-    main(args.prompt, skip_research=args.skip_research, skip_outline=args.skip_outline)
+    main(args.prompt, skip_research=args.skip_research, skip_outline=args.skip_outline, force_recreate=args.force_recreate)
