@@ -18,5 +18,5 @@ class FileType(Enum):
     
 class EmbeddingModel(Enum):
     SENTENCE_TRANSFORMER = "sentence-transformer"
-    CONAN = "/home/sheropen/models/TencentBAC/Conan-embedding-v1"
+    CONAN = "TencentBAC/Conan-embedding-v1"
     SONAR = "sonar"
