@@ -53,7 +53,8 @@ class SectionWriter(dspy.Signature):
     1. 不要在输出中包含章节名称。
     2. 只输出与当前章节最相关的信息。
     3. 所生成内容是完整百科的其中一个部分，所以不必重复一些较笼统的信息。
-    4. 必须使用中文输出。
+    4. 不要在输出中包含任何信息来源。
+    5. 必须使用中文输出。
     """
     topic = dspy.InputField(prefix="主题：")
     summary = dspy.InputField(prefix="当前章节简介：")
