@@ -26,10 +26,10 @@ MAX_SUBTOPIC_EXPLORER_DEPTH = 1
 MAX_OUTLINE_DEPTH = 2
 MIN_MEMORY_UNITS_FOR_SUBSECTION = 10
 
-model = "openai/qwen-turbo"
-better_model = "openai/gpt-4o"
-lm = dspy.LM(model=model, api_key=os.getenv("ALIYUN_API_KEY"), api_base=os.getenv("ALIYUN_BASE_URL"))
-better_lm = dspy.LM(model=better_model, api_key=os.getenv("OPENAI_API_KEY"), api_base=os.getenv("OPENAI_BASE_URL"))
+model = "openai/deepseek-chat"
+better_model = "openai/deepseek-chat"
+lm = dspy.LM(model=model, api_key=os.getenv("DEEPSEEK_API_KEY"), api_base=os.getenv("DEEPSEEK_BASE_URL"))
+better_lm = dspy.LM(model=better_model, api_key=os.getenv("DEEPSEEK_API_KEY"), api_base=os.getenv("DEEPSEEK_BASE_URL"))
 
 dspy.configure(lm=lm)
 dspy.litellm._logging._disable_debugging()

@@ -230,7 +230,7 @@ class Article:
                 text += f"{subsection_text}"
         
         if show_reference and self.layer == 1:
-            text += "## References:\n"
+            text += "## 参考文献\n"
             for doc_id in range(1, self.doc_cnt):
                 text += f"[{doc_id}] {self.reference_dict[doc_id]}\n"
         return text
