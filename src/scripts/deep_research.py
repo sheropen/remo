@@ -126,11 +126,15 @@ def main(prompt, skip_research=False, skip_outline=False, force_recreate=False):
     summary = bootstrap(topic=topic)
     logger.info(f"Summary: {summary}")
     
+    topic = "DefAI（Web3赛道）"
+    
     # memory construction
     memory = Memory(topic=topic, engine=lm, force_recreate=force_recreate)
     if not skip_research:
         memory_units, note_dict = recursive_research_subtopic(topic=topic, summary=summary)
         memory.insert_information(memory_units=memory_units)
+        
+    memory.deduplicate_information()
     
     # memory organization
     if not skip_outline:

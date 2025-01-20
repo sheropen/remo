@@ -17,6 +17,8 @@ from src.utils import Parser, timer, setup_logger
 
 
 logger = setup_logger()
+MAX_SIMILARITY_THRESHOLD = 0.99
+
 
 class SectionAssigner(dspy.Signature):
     """给定一个句子和章节列表，将句子分配到最合适的章节。
@@ -71,7 +73,34 @@ class Memory:
         
         self.collection.add(documents=[unit.content for unit in memory_units], ids=[str(uuid.uuid4()) for _ in memory_units], metadatas=metadatas)
         logger.info(f"{self.collection.count()} memory units inserted")
+    
+    @timer
+    def deduplicate_information(self):
+        results = self.collection.get(include=['documents'])
+        query_results = self.collection.query(query_texts=results["documents"], n_results=2)  # Get 2 results to skip self-match
         
+        id_to_content = {}
+
+        similarity_groups = {}  # Maps unit_id to its group representative
+        for idx, unit_id in enumerate(results["ids"]):
+            id_to_content[unit_id] = results["documents"][idx]
+            if unit_id in similarity_groups:
+                continue
+            similar_unit_id = query_results["ids"][idx][1]  # Use second result to skip self
+            similar_distance = query_results["distances"][idx][1]
+            
+            if similar_distance >= MAX_SIMILARITY_THRESHOLD:
+                group_rep = similarity_groups.get(similar_unit_id, unit_id)
+                similarity_groups[unit_id] = group_rep
+                similarity_groups[similar_unit_id] = group_rep
+        
+        remove_ids = {unit_id for unit_id, group_rep in similarity_groups.items() 
+                     if unit_id != group_rep}
+        
+        if remove_ids:
+            self.collection.delete(ids=list(remove_ids))
+            logger.info(f"{len(remove_ids)} memory units deleted out of {len(results['ids'])}, deduplication rate: {100 * len(remove_ids) / len(results['ids'])} %")
+    
     @timer
     def retrieve_information(
         self, query: str, k: int = 100, constraint: dict = None
