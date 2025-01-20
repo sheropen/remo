@@ -75,7 +75,7 @@ def recursive_generate_outline(memory: Memory, title: str, summary: str, layer: 
     constraint = {"label": title} if layer != 1 else None
     outline = Outline(title=title, layer=layer)
     
-    should_label = False # do not label first
+    should_label = True # do not label first
     
     if layer > MAX_OUTLINE_DEPTH or (len(memory.retrieve_information(query=title, k=100, constraint=constraint)) <= MIN_MEMORY_UNITS_FOR_SUBSECTION and should_label):
         return outline
@@ -163,8 +163,12 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
                     futures.append((subsection, future))
                 for _, future in futures:
                     subsection = future.result()
-                    if subsection.subsection_list or subsection.paragraph_list:
+                    if subsection.subsection_list or subsection.paragraph_list: # if subsection is not empty
                         section.add_subsection(subsection)
+                if len(section.subsection_list) == 1: # if only one subsection, then it is the main section
+                    subsection = section.subsection_list[0]
+                    subsection.title = section.title
+                    section = subsection
         else:
             working_context = memory.retrieve_information(query=_outline.title, k=100, constraint={"label": _outline.title})
             logger.info(f"Retrieved {len(working_context)} information for {_outline.title}")
