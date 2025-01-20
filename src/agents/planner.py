@@ -59,6 +59,11 @@ class Planner:
         response = f(topic=topic, focus=focus, information=information)
         return response.entities
     
+    def rearrange_sections(self, outline: Outline, summary: str):
+        f = dspy.Predict(SectionRearranger)
+        response = f(outline=outline, summary=summary)
+        return response.rearranged_outline
+    
 class PromptConverter(dspy.Signature):
     """
     给定用户的原始prompt，提取出主题，以作为符合用户要求的维基百科文章的标题。
@@ -150,3 +155,13 @@ class InformationFilter(dspy.Signature):
     focus = dspy.InputField(prefix="聚焦点：")
     information = dspy.InputField(prefix="信息：")
     entities: List[str] = dspy.OutputField(prefix="实体列表：")
+    
+    
+class SectionRearranger(dspy.Signature):
+    """
+    给定大纲和主题简介，按照人类的阅读顺序重新排列大纲章节顺序，以确保大纲的逻辑性和可读性
+    以markdown格式（## 章节标题，### 子章节标题）输出
+    """
+    outline = dspy.InputField(prefix="大纲：")
+    summary = dspy.InputField(prefix="主题简介：")
+    rearranged_outline = dspy.OutputField(prefix="重新排列后的大纲：")
