@@ -2,7 +2,9 @@ import dspy
 from typing import List
 from src.data_structure import Information
 from src.article import Outline
-from src.utils import Parser
+from src.utils import Parser, setup_logger
+
+logger = setup_logger()
 
 class Planner:
     def __init__(self, engine: dspy.dsp.LM):
@@ -45,9 +47,10 @@ class Planner:
         return response.related_topics
     
     def refine_outline(self, outline: Outline):
-        f = dspy.Predict(OutlineRefiner)
+        f = dspy.ChainOfThought(OutlineRefiner)
         with dspy.settings.context(lm=self.engine):
             response = f(outline=outline)
+        logger.info(f"Reasoning: {response.reasoning}")
         return response.refined_outline
     
     # use weaker model to filter information (for broad search, extracting entities)
@@ -129,11 +132,11 @@ class OutlineGenerator(dspy.Signature):
     
 class OutlineRefiner(dspy.Signature):
     """
-    以markdown格式（## 章节标题）重写给定的大纲，以确保可读性与逻辑流畅性
+    以markdown格式（## 章节标题，### 子章节标题）以及维基风格重写给定的大纲，以确保可读性与逻辑流畅性
     生成规则：
-    1. 删除冗余的子章节
+    1. 不要生成过多的子章节，同时确保子章节之间没有任何重复
     2. 保证大纲按照人类的阅读习惯，比如逻辑关系以及阅读顺序
-    3. 仅根据已有的信息，不要生成新的信息（不要产生幻觉）
+    3. 不要生成章节序号
     4. 用中文输出
     """
     outline = dspy.InputField(prefix="大纲：")

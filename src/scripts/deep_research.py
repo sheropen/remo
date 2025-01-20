@@ -119,7 +119,7 @@ def bootstrap(topic: str):
     return summary
 
 @timer
-def main(prompt, skip_research=False, skip_outline=False, force_recreate=False):
+def main(prompt, skip_research=False, skip_outline=False, skip_write=False, force_recreate=False):
     topic = planner.convert_prompt_to_topic(prompt=prompt)
     logger.info(f"Article Topic: {topic}")
     
@@ -175,9 +175,10 @@ def main(prompt, skip_research=False, skip_outline=False, force_recreate=False):
                 logger.info(f"Section Content for {_outline.title}: {section_content}")
         return section
     
-    article = write_section(_outline=refined_outline, summary=summary, layer=1)
-    article.update_reference_dict()
-    article.save_to_files(DEEP_RESEARCH_DIR)
+    if not skip_write:  
+        article = write_section(_outline=refined_outline, summary=summary, layer=1)
+        article.update_reference_dict()
+        article.save_to_files(DEEP_RESEARCH_DIR)
         
         
 if __name__ == "__main__":
@@ -185,6 +186,7 @@ if __name__ == "__main__":
     parser.add_argument('prompt', type=str, help='Research prompt')
     parser.add_argument('--skip-research', action='store_true', help='Skip research phase')
     parser.add_argument('--skip-outline', action='store_true', help='Skip outline generation')
+    parser.add_argument('--skip-write', action='store_true', help='Skip write phase')
     parser.add_argument('--force-recreate', action='store_true', help='Force recreate memory')
     args = parser.parse_args()
-    main(args.prompt, skip_research=args.skip_research, skip_outline=args.skip_outline, force_recreate=args.force_recreate)
+    main(args.prompt, skip_research=args.skip_research, skip_outline=args.skip_outline, skip_write=args.skip_write, force_recreate=args.force_recreate)
