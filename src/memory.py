@@ -122,7 +122,7 @@ class Memory:
         return memory_unit_list
     
     @timer
-    def group_information(self, constraint: dict = None, n_clusters: int = 5, query: str = None):
+    def group_information(self, constraint: dict = None, n_clusters: int = 20, query: str = None):
         if query:
             query_result = self.collection.query(
                 query_texts=[query],
@@ -141,6 +141,8 @@ class Memory:
             return []
             
         # Perform k-means clustering
+        memory_unit_count = len(documents)
+        cluster_count = max(n_clusters, memory_unit_count // 5)
        
         kmeans = KMeans(n_clusters=min(n_clusters, len(documents)), random_state=42)
         clusters = kmeans.fit_predict(embeddings)
