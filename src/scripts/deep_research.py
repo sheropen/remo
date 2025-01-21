@@ -75,7 +75,7 @@ def recursive_generate_outline(memory: Memory, title: str, summary: str, layer: 
     constraint = {"label": title} if layer != 1 else None
     outline = Outline(title=title, layer=layer)
     
-    should_label = True # do not label first
+    should_label = False # do not label first
     
     if layer > MAX_OUTLINE_DEPTH or (len(memory.retrieve_information(query=title, k=100, constraint=constraint)) <= MIN_MEMORY_UNITS_FOR_SUBSECTION and should_label):
         return outline
@@ -138,12 +138,31 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
         outline = recursive_generate_outline(memory=memory, summary=summary, title=topic)
         logger.info(f"Outline: {outline.to_markdown()}")
         
+        
+        # for debug only
+        load_refined_outline = False
         if True:
-            markdown_response = planner.refine_outline(outline=outline)
-            logger.info(f"Refined Outline by planner: {markdown_response}")
-            refined_outline = Outline.from_markdown(title=topic, markdown=markdown_response)
-            logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
-            flat_list = refined_outline.to_flatten_list(only_leaf=True)
+            if not load_refined_outline:
+                markdown_response_refine = planner.refine_outline(outline=outline)
+                logger.info(f"Refined Outline by planner: {markdown_response_refine}")
+                refined_outline = Outline.from_markdown(title=topic, markdown=markdown_response_refine)
+                logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
+                
+                # save the refined outline
+                with open(DEEP_RESEARCH_DIR / "markdown" / f"{topic}_refined_outline.md", "w", encoding="utf-8") as f:
+                    f.write(refined_outline.to_markdown(show_title=True))
+            else:
+                with open(DEEP_RESEARCH_DIR / "markdown" / f"{topic}_refined_outline.md", "r", encoding="utf-8") as f:
+                    markdown_response_refine = f.read()
+                refined_outline = Outline.from_markdown(title=topic, markdown=markdown_response_refine)
+                logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
+            
+            markdown_response_rearrange = planner.rearrange_sections(outline=refined_outline, summary=summary)
+            logger.info(f"Rearranged Outline by planner: {markdown_response_rearrange}")
+            rearranged_outline = Outline.from_markdown(title=topic, markdown=markdown_response_rearrange)
+            logger.info(f"Rearranged Outline: {rearranged_outline.to_markdown(show_title=True)}")
+            
+            flat_list = rearranged_outline.to_flatten_list(only_leaf=True)
             logger.info(f"Flat List: {flat_list}")
             memory.label_information(labels=flat_list)
         else:
@@ -182,9 +201,26 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
     if not skip_write:  
         article = write_section(_outline=refined_outline, summary=summary, layer=1)
         article.update_reference_dict()
+        
+        # Save both original version
         article.save_to_files(DEEP_RESEARCH_DIR)
         
+        # Rewrite the article in a more engaging style
+        article_content = article.__repr__(show_citation=False, show_reference=False)
+        rewritten_content = writer.rewrite_article(article=article_content)
         
+        # Create and save rewritten article
+        rewritten_article = Article.from_text(
+            title=f"{topic}_rewritten",
+            layer=1,
+            text=rewritten_content,
+            working_context=article.get_all_working_context()
+        )
+        rewritten_article.reference_dict = article.reference_dict
+        rewritten_article.doc_cnt = article.doc_cnt
+        rewritten_article.save_to_files(DEEP_RESEARCH_DIR)
+        logger.info(f"Saved rewritten article to {DEEP_RESEARCH_DIR}/markdown/{topic}_rewritten.md")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Deep research on a topic')
     parser.add_argument('prompt', type=str, help='Research prompt')
