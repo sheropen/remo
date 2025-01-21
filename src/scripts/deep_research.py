@@ -1,5 +1,6 @@
 import dspy
 import os
+import json
 from dotenv import load_dotenv
 from pathlib import Path
 import argparse
@@ -19,7 +20,7 @@ parent_dir = Path(__file__).parent.parent.parent
 load_dotenv(parent_dir / '.env')
 
 
-MAX_QUERY = 3
+MAX_QUERY = 4
 MAX_SUBTOPIC = 3
 MAX_RESULTS = 20
 MAX_SUBTOPIC_EXPLORER_DEPTH = 1
@@ -27,28 +28,34 @@ MAX_OUTLINE_DEPTH = 2
 MIN_MEMORY_UNITS_FOR_SUBSECTION = 10
 
 model = "openai/deepseek-chat"
-better_model = "openai/deepseek-chat"
+reasoning_model = "openai/deepseek-reasoner"
+writing_model = "openai/qwen-max"
+
 lm = dspy.LM(model=model, api_key=os.getenv("DEEPSEEK_API_KEY"), api_base=os.getenv("DEEPSEEK_BASE_URL"))
-better_lm = dspy.LM(model=better_model, api_key=os.getenv("DEEPSEEK_API_KEY"), api_base=os.getenv("DEEPSEEK_BASE_URL"))
+reasoning_lm = dspy.LM(model=reasoning_model, api_key=os.getenv("DEEPSEEK_API_KEY"), api_base=os.getenv("DEEPSEEK_BASE_URL"))
+writing_lm = dspy.LM(model=writing_model, api_key=os.getenv("ALIYUN_API_KEY"), api_base=os.getenv("ALIYUN_BASE_URL"))
+
 
 dspy.configure(lm=lm)
 dspy.litellm._logging._disable_debugging()
 dspy.disable_logging()
 
-httpx_logger = logging.getLogger("httpx")
-httpx_logger.setLevel(logging.WARNING)
+# httpx_logger = logging.getLogger("httpx")
+# httpx_logger.setLevel(logging.WARNING)
 
-planner = Planner(engine=better_lm)
+planner = Planner(engine=lm, reasoning_engine=reasoning_lm)
 retriever = Retriever(engine=lm)
-writer = Writer(engine=better_lm)
+writer = Writer(engine=writing_lm)
 
 @timer
 def research_topic(topic, summary):
-    queries = planner.generate_queries(topic=topic, summary=summary)
-    serp_results = retriever.search(queries=queries[:MAX_QUERY], max_results=MAX_RESULTS)
+    chinese_queries = planner.generate_queries(topic=topic, summary=summary)
+    english_queries = planner.generate_queries_english(topic=topic, summary=summary)
+    queries = chinese_queries[:MAX_QUERY//2] + english_queries[:MAX_QUERY//2]
+    serp_results = retriever.search(queries=queries, max_results=MAX_RESULTS)
     webpages = retriever.fetch_webpages(webpages=serp_results, timeout=20)
     memory_units = retriever.extract_memory_units(topic=topic, webpages=webpages)
-    logger.info(f"Topic: {topic} Generated {len(queries)} queries, {len(serp_results)} search results, {len(webpages)} webpages, {len(memory_units)} memory units")    
+    logger.info(f"Topic: {topic}, Generated {len(chinese_queries)} + {len(english_queries)} queries, {len(serp_results)} search results, {len(webpages)} webpages, {len(memory_units)} memory units")    
     return memory_units
 
 
@@ -75,7 +82,7 @@ def recursive_generate_outline(memory: Memory, title: str, summary: str, layer: 
     constraint = {"label": title} if layer != 1 else None
     outline = Outline(title=title, layer=layer)
     
-    should_label = False # do not label first
+    should_label = True # do not label first
     
     if layer > MAX_OUTLINE_DEPTH or (len(memory.retrieve_information(query=title, k=100, constraint=constraint)) <= MIN_MEMORY_UNITS_FOR_SUBSECTION and should_label):
         return outline
@@ -134,42 +141,32 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
         memory.deduplicate_information()
     
     # memory organization
-    if not skip_outline:
+    outline_dir = DEEP_RESEARCH_DIR / "outline"
+    os.makedirs(outline_dir, exist_ok=True)
+    if skip_outline:
+        with open(outline_dir / f"{topic}.json", "r", encoding="utf-8") as f:
+            refined_outline = Outline.from_dict(title=topic, dict=json.load(f))
+    else:
         outline = recursive_generate_outline(memory=memory, summary=summary, title=topic)
         logger.info(f"Outline: {outline.to_markdown()}")
         
         
-        # for debug only
-        load_refined_outline = False
-        if True:
-            if not load_refined_outline:
-                markdown_response_refine = planner.refine_outline(outline=outline)
-                logger.info(f"Refined Outline by planner: {markdown_response_refine}")
-                refined_outline = Outline.from_markdown(title=topic, markdown=markdown_response_refine)
-                logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
-                
-                # save the refined outline
-                with open(DEEP_RESEARCH_DIR / "markdown" / f"{topic}_refined_outline.md", "w", encoding="utf-8") as f:
-                    f.write(refined_outline.to_markdown(show_title=True))
-            else:
-                with open(DEEP_RESEARCH_DIR / "markdown" / f"{topic}_refined_outline.md", "r", encoding="utf-8") as f:
-                    markdown_response_refine = f.read()
-                refined_outline = Outline.from_markdown(title=topic, markdown=markdown_response_refine)
-                logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
-            
-            markdown_response_rearrange = planner.rearrange_sections(outline=refined_outline, summary=summary)
-            logger.info(f"Rearranged Outline by planner: {markdown_response_rearrange}")
-            rearranged_outline = Outline.from_markdown(title=topic, markdown=markdown_response_rearrange)
-            logger.info(f"Rearranged Outline: {rearranged_outline.to_markdown(show_title=True)}")
-            
-            flat_list = rearranged_outline.to_flatten_list(only_leaf=True)
-            logger.info(f"Flat List: {flat_list}")
-            memory.label_information(labels=flat_list)
-        else:
-            refined_outline = outline
+        refined_outline_markdown = planner.refine_outline(outline=outline)
+        refined_outline = Outline.from_markdown(title=topic, markdown=refined_outline_markdown)
+        logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
+        
+        rearranged_outline_markdown = planner.rearrange_sections(outline=refined_outline, summary=summary)
+        rearranged_outline = Outline.from_markdown(title=topic, markdown=rearranged_outline_markdown)
+        logger.info(f"Rearranged Outline: {rearranged_outline.to_markdown(show_title=True)}")
+        
+        with open(outline_dir / f"{topic}.json", "w", encoding="utf-8") as f:
+            json.dump(rearranged_outline.to_dict(), f)
+        
+        flat_list = rearranged_outline.to_flatten_list(only_leaf=True)
+        logger.info(f"Flat List: {flat_list}")
+        memory.label_information(labels=flat_list)
     
-    # article generation
-    article = Article(title=topic)
+    
     
     def write_section(_outline: Outline, summary: str, layer: int):
         section = Article(title=_outline.title, layer=layer)
@@ -198,7 +195,8 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
                 logger.info(f"Section Content for {_outline.title}: {section_content}")
         return section
     
-    if not skip_write:  
+    # article generation
+    if not skip_write:
         article = write_section(_outline=refined_outline, summary=summary, layer=1)
         article.update_reference_dict()
         

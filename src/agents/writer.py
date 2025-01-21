@@ -2,9 +2,6 @@ import dspy
 from typing import List
 from src.utils import timer
 from src.data_structure import MemoryUnit
-from openai import OpenAI
-import httpx
-import os
 
 
 class Writer:
@@ -32,38 +29,26 @@ class Writer:
     @timer
     def summarize_information(self, information: List[str]):
         f = dspy.Predict(Summarizer)
-        with dspy.settings.context(lm=self.engine):
-            response = f(information=information)
+        response = f(information=information)
         return response.summary
 
     @timer
     def rewrite_article(self, article: str):
-        """Rewrite the article in a more engaging social media style"""
-        system_prompt = """想象你是新媒体运营者，拥有百万粉丝。
+        f = dspy.Predict(ArticleRewriter)
+        with dspy.settings.context(lm=self.engine):
+            response = f(article=article)
+        return response.rewritten_article
+
+class ArticleRewriter(dspy.Signature):
+    """想象你是新媒体运营者，拥有百万粉丝。
         帮我改写这篇研报，让它整体（句子之间、不同章节之间）更有一个连贯的主题和故事线，能吸引大家阅读，且易懂。
 
         生成规则：
         1. 必须保留所有相关的信息与细节，除非是重复的信息。
         2. 以markdown格式返回。
         3. 必须使用中文输出。"""
-        
-        transport = httpx.HTTPTransport(retries=3)
-        
-        self.client = OpenAI(
-            api_key=os.getenv("ALIYUN_API_KEY"),
-            base_url=os.getenv("ALIYUN_BASE_URL"),
-            http_client=httpx.Client(transport=transport)
-        )
-
-        response = self.client.chat.completions.create(
-            model="qwen-max",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": article}
-            ],
-            stream=False
-        )
-        return response.choices[0].message.content
+    article = dspy.InputField(prefix="文章：")
+    rewritten_article = dspy.OutputField(prefix="改写后的文章：")
 
 class ArticleWriter(dspy.Signature):
     """
