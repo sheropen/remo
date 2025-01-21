@@ -59,6 +59,13 @@ class Planner:
         response = f(topic=topic, focus=focus, information=information)
         return response.entities
     
+    def rearrange_sections(self, outline: Outline, summary: str):
+        f = dspy.ChainOfThought(SectionRearranger)
+        with dspy.settings.context(lm=self.engine):
+            response = f(outline=outline, summary=summary)
+        logger.info(f"Reasoning: {response.reasoning}")
+        return response.rearranged_outline
+    
 class PromptConverter(dspy.Signature):
     """
     给定用户的原始prompt，提取出主题，以作为符合用户要求的维基百科文章的标题。
@@ -118,7 +125,7 @@ class SubtopicGenerator(dspy.Signature):
     
 class OutlineGenerator(dspy.Signature):
     """
-    给定当前章节标题和信息，以维基百科风格将当前章节内容细分为多个子章节
+    给定当前章节标题和信息，以研报风格将当前章节内容细分为多个子章节
     生成规则：
     1. 只生成一级大纲，不进一步细分
     2. 不要生成“概述”作为子章节
@@ -132,7 +139,7 @@ class OutlineGenerator(dspy.Signature):
     
 class OutlineRefiner(dspy.Signature):
     """
-    以markdown格式（## 章节标题，### 子章节标题）以及维基风格重写给定的大纲，以确保可读性与逻辑流畅性
+    以markdown格式（## 章节标题，### 子章节标题）以及研报风格重写给定的大纲，以确保可读性与逻辑流畅性
     生成规则：
     1. 不要生成过多的子章节，同时确保子章节之间没有任何重复
     2. 保证大纲按照人类的阅读习惯，比如逻辑关系以及阅读顺序
@@ -150,3 +157,13 @@ class InformationFilter(dspy.Signature):
     focus = dspy.InputField(prefix="聚焦点：")
     information = dspy.InputField(prefix="信息：")
     entities: List[str] = dspy.OutputField(prefix="实体列表：")
+    
+    
+class SectionRearranger(dspy.Signature):
+    """
+    给定大纲和主题简介，按照研报风格，重新排列这份研报大纲章节顺序，以确保大纲的逻辑性和可读性
+    以markdown格式（## 章节标题，### 子章节标题）输出
+    """
+    outline = dspy.InputField(prefix="大纲：")
+    summary = dspy.InputField(prefix="主题简介：")
+    rearranged_outline = dspy.OutputField(prefix="重新排列后的大纲：")
