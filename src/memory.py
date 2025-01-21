@@ -224,15 +224,18 @@ class Memory:
             ids=memory_unit_list["ids"],
             metadatas=memory_unit_list["metadatas"]
         )
-
+        
         # Log results
+        discarded = set(labels) - set(labels_to_keep)
+        for label in discarded:
+            logger.info(f"Discarded section due to insufficient memory units: {label}")
+            
+        
         for label in labels_to_keep:
             unit_count = len(self.collection.get(where={"label": label})["ids"])
             logger.info(f"Section: {label}, Memory Unit Count: {unit_count}")
 
-        discarded = set(labels) - set(labels_to_keep)
-        for label in discarded:
-            logger.info(f"Discarded section due to insufficient memory units: {label}")
+        
 
         return labels_to_keep
         

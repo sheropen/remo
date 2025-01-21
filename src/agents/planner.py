@@ -28,6 +28,7 @@ class Planner:
         f = dspy.ChainOfThought(TopicRefinement)
         with dspy.settings.context(lm=self.reasoning_engine):
             response = f(topic=topic, information=information, prompt=prompt)
+        logger.info(f"Reasoning: {response.reasoning}")
         return response.refined_topic
     
     # queries generation
@@ -110,16 +111,18 @@ class PromptConverterWithFocus(dspy.Signature):
 
 class TopicRefinement(dspy.Signature):
     """
-    给定主题、相关信息和用户原始prompt，对主题进行精确重写。重写时需要:
-    1. 确保主题与prompt高度相关，避免过于宽泛的表述
-    2. 只对实体进行补充1至2个关键词，不要使用信息中的所有信息
-    3. 保持与原主题的一致性
-    4. 使用中文输出
+    对主题进行精确重写。重写时需要:
+    1. 确保与prompt和原主题的表述一致
+    2. 只提取参考信息中可补充命名实体使得指向性更强的部分
+    3. **绝对**不能改变原主题的含义，如“人工智能”不能变成“人工智能的发展”
+    4. 如果信息中和原主题有所冲突，则修正原主题
+    5. 如果原主题已经非常明确了，则不需要重写
+    6. 使用中文输出
     """
-    topic = dspy.InputField(prefix="主题：")
-    information = dspy.InputField(prefix="信息：")
+    topic = dspy.InputField(prefix="文章标题：")
+    information = dspy.InputField(prefix="参考信息：")
     prompt = dspy.InputField(prefix="原始prompt：")
-    refined_topic = dspy.OutputField(prefix="细化后的主题：")
+    refined_topic = dspy.OutputField(prefix="细化后的文章标题：")
 
 # query generation
 class QueryGenerator(dspy.Signature):
@@ -204,7 +207,8 @@ class SectionRearranger(dspy.Signature):
     生成规则：
     1. 不要生成章节序号
     2. 不要擅自添加章节或子章节
-    3. 用中文输出
+    3. 介绍性质的章节（若有）应该放在前面，展望之类的章节（若有）应该放在后面
+    4. 用中文输出
     """
     outline = dspy.InputField(prefix="大纲：")
     summary = dspy.InputField(prefix="主题简介：")

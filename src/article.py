@@ -57,7 +57,6 @@ class Outline:
         root = cls(title=title)
         current_levels = [root]
         current_titles = [title]  # Track full hierarchical titles
-        base_level = None
         
         for line in lines:
             if not line.startswith('#'):
@@ -67,18 +66,11 @@ class Outline:
             level = 0
             while level < len(line) and line[level] == '#':
                 level += 1
-            
-            # Set base level on first heading if not set
-            if base_level is None:
-                base_level = level
-            
-            # Normalize level relative to base level
-            normalized_level = level - base_level + 1
                 
             raw_title = line[level:].strip()
             
             # Handle nesting
-            while len(current_levels) > normalized_level:
+            while len(current_levels) >= level:
                 current_levels.pop()
                 current_titles.pop()
             
@@ -91,7 +83,7 @@ class Outline:
             full_title = "//".join(current_titles + [raw_title])
             
             # Create new outline node
-            node = Outline(title=full_title, layer=normalized_level)
+            node = Outline(title=full_title, layer=level)
             
             # Attach to parent and update tracking lists
             current_levels[-1].insert_child(node)

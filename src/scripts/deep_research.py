@@ -140,6 +140,8 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
     memory = Memory(topic=topic, engine=lm, force_recreate=force_recreate)
     if not skip_research:
         memory_units, note_dict = recursive_research_subtopic(topic=topic, summary=summary)
+        for k, v in note_dict.items():
+            logger.info(f"{k}: {v}")
         memory.insert_information(memory_units=memory_units)
         memory.deduplicate_information()
     
@@ -163,7 +165,7 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
         logger.info(f"Rearranged Outline: {rearranged_outline.to_markdown(show_title=True)}")
         
         with open(outline_dir / f"{topic}.json", "w", encoding="utf-8") as f:
-            json.dump(rearranged_outline.to_dict(), f)
+            json.dump(rearranged_outline.to_dict(), f, ensure_ascii=False)
         
         flat_list = rearranged_outline.to_flatten_list(only_leaf=True)
         logger.info(f"Flat List: {flat_list}")
@@ -187,7 +189,9 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
                 if len(section.subsection_list) == 1: # if only one subsection, then it is the main section
                     subsection = section.subsection_list[0]
                     subsection.title = section.title
+                    subsection.layer = section.layer
                     section = subsection
+
         else:
             working_context = memory.retrieve_information(query=_outline.title, k=100, constraint={"label": _outline.title})
             logger.info(f"Retrieved {len(working_context)} information for {_outline.title}")
@@ -210,8 +214,16 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
         article_content = article.__repr__(show_citation=False, show_reference=False)
         rewritten_content = writer.rewrite_article(article=article_content)
         
+        working_context = memory.retrieve_information(query=f"{topic}的简介", k=100)
+        abstract = writer.write_section(topic=f"{topic}", summary=summary, focus="关注最重要的信息，写成一小段简短的介绍，特别是主题的背景介绍", information=[unit.content for unit in working_context], section_title="简介")
+        
         with open(DEEP_RESEARCH_DIR / "txt" / f"{topic}_rewritten.txt", "w", encoding="utf-8") as f:
-            f.write(rewritten_content)
+            article_title = rewritten_content.split("\n")[0]
+            rest_of_content = "\n".join(rewritten_content.split("\n")[1:])
+            f.write(f"{article_title}\n")
+            f.write(abstract)
+            f.write("\n\n")
+            f.write(rest_of_content)
             f.write("\n\n## 参考文献\n")
             for doc_id in range(1, article.doc_cnt):
                 f.write(f"[{doc_id}] {article.reference_dict[doc_id]}\n")
