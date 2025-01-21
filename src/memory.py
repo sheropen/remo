@@ -169,7 +169,6 @@ class Memory:
                 result = self.assigner(sentence=content, section_list=",".join(_label_list))
                 try:
                     label = result.answer
-                    print(f"label: {label} for {content}")
                     return label if label in _label_list else "Other"
                 except:
                     logger.error(f"Failed to parse result: {result.answer}")

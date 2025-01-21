@@ -40,8 +40,8 @@ dspy.configure(lm=lm)
 dspy.litellm._logging._disable_debugging()
 dspy.disable_logging()
 
-# httpx_logger = logging.getLogger("httpx")
-# httpx_logger.setLevel(logging.WARNING)
+httpx_logger = logging.getLogger("httpx")
+httpx_logger.setLevel(logging.WARNING)
 
 planner = Planner(engine=lm, reasoning_engine=reasoning_lm)
 retriever = Retriever(engine=lm)
@@ -133,6 +133,9 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
     summary = bootstrap(topic=topic)
     logger.info(f"Summary: {summary}")
     
+    topic = planner.refine_topic(topic=topic, information=summary, prompt=prompt)
+    logger.info(f"Refined Topic: {topic}")
+    
     # memory construction
     memory = Memory(topic=topic, engine=lm, force_recreate=force_recreate)
     if not skip_research:
@@ -145,7 +148,7 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
     os.makedirs(outline_dir, exist_ok=True)
     if skip_outline:
         with open(outline_dir / f"{topic}.json", "r", encoding="utf-8") as f:
-            refined_outline = Outline.from_dict(title=topic, dict=json.load(f))
+            refined_outline = Outline.from_dict(data=json.load(f))
     else:
         outline = recursive_generate_outline(memory=memory, summary=summary, title=topic)
         logger.info(f"Outline: {outline.to_markdown()}")
@@ -207,17 +210,11 @@ def main(prompt, skip_research=False, skip_outline=False, skip_write=False, forc
         article_content = article.__repr__(show_citation=False, show_reference=False)
         rewritten_content = writer.rewrite_article(article=article_content)
         
-        # Create and save rewritten article
-        rewritten_article = Article.from_text(
-            title=f"{topic}_rewritten",
-            layer=1,
-            text=rewritten_content,
-            working_context=article.get_all_working_context()
-        )
-        rewritten_article.reference_dict = article.reference_dict
-        rewritten_article.doc_cnt = article.doc_cnt
-        rewritten_article.save_to_files(DEEP_RESEARCH_DIR)
-        logger.info(f"Saved rewritten article to {DEEP_RESEARCH_DIR}/markdown/{topic}_rewritten.md")
+        with open(DEEP_RESEARCH_DIR / "txt" / f"{topic}_rewritten.txt", "w", encoding="utf-8") as f:
+            f.write(rewritten_content)
+            f.write("\n\n## 参考文献\n")
+            for doc_id in range(1, article.doc_cnt):
+                f.write(f"[{doc_id}] {article.reference_dict[doc_id]}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Deep research on a topic')

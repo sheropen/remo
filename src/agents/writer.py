@@ -34,7 +34,7 @@ class Writer:
 
     @timer
     def rewrite_article(self, article: str):
-        f = dspy.Predict(ArticleRewriter)
+        f = dspy.Predict(ArticleRewriter, max_tokens=8000)
         with dspy.settings.context(lm=self.engine):
             response = f(article=article)
         return response.rewritten_article

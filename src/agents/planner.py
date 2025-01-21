@@ -24,6 +24,12 @@ class Planner:
             response = f(prompt=prompt)
         return response.topic
     
+    def refine_topic(self, topic: str, information: str, prompt: str):
+        f = dspy.ChainOfThought(TopicRefinement)
+        with dspy.settings.context(lm=self.reasoning_engine):
+            response = f(topic=topic, information=information, prompt=prompt)
+        return response.refined_topic
+    
     # queries generation
     def generate_queries_english(self, topic: str, summary: str=None):
         f = dspy.Predict(QueryGeneratorEnglish)
@@ -77,7 +83,8 @@ class Planner:
             response = f(outline=outline, summary=summary)
         logger.info(f"Reasoning: {response.reasoning}")
         return response.rearranged_outline
-    
+
+# topic and focus extraction
 class PromptConverter(dspy.Signature):
     """
     给定用户的原始prompt，提取出主题，以作为符合用户要求的维基百科文章的标题。
@@ -100,6 +107,21 @@ class PromptConverterWithFocus(dspy.Signature):
     topic = dspy.OutputField(prefix="主题：")
     focus = dspy.OutputField(prefix="聚焦点：")
 
+
+class TopicRefinement(dspy.Signature):
+    """
+    给定主题、相关信息和用户原始prompt，对主题进行精确重写。重写时需要:
+    1. 确保主题与prompt高度相关，避免过于宽泛的表述
+    2. 只对实体进行补充1至2个关键词，不要使用信息中的所有信息
+    3. 保持与原主题的一致性
+    4. 使用中文输出
+    """
+    topic = dspy.InputField(prefix="主题：")
+    information = dspy.InputField(prefix="信息：")
+    prompt = dspy.InputField(prefix="原始prompt：")
+    refined_topic = dspy.OutputField(prefix="细化后的主题：")
+
+# query generation
 class QueryGenerator(dspy.Signature):
     """
     给定主题，生成多样化的谷歌搜索条目
@@ -124,6 +146,7 @@ class QueryGeneratorEnglish(dspy.Signature):
     topic = dspy.InputField(prefix="Topic:")
     queries: List[str] = dspy.OutputField(prefix="Query List:")
 
+# topic exploration
 class RelatedTopicGenerator(dspy.Signature):
     """
     给定主题，生成相关主题
@@ -147,6 +170,7 @@ class SubtopicGenerator(dspy.Signature):
     summary = dspy.InputField(prefix="当前主题总结：")
     subtopics: List[str] = dspy.OutputField(prefix="子主题列表：")
     
+# outline generation
 class OutlineGenerator(dspy.Signature):
     """
     给定当前章节标题和信息，以研报风格将当前章节内容细分为多个子章节
@@ -186,7 +210,7 @@ class SectionRearranger(dspy.Signature):
     summary = dspy.InputField(prefix="主题简介：")
     rearranged_outline = dspy.OutputField(prefix="重新排列后的大纲：")
 
-
+# information filter
 class InformationFilter(dspy.Signature):
     """
     给定信息（包含实体和上下文），过滤出符合主题与聚焦点的实体
