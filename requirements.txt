@@ -5,7 +5,10 @@ chromadb
 dspy-ai
 langchain-text-splitters
 litellm
-pydantic
+pydantic>=1.8.0
 python-dotenv
 scikit-learn 
 sentence-transformers
+anyio>=3.0.0
+fastapi>=0.68.0
+uvicorn>=0.15.0

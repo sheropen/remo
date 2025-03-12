@@ -6,10 +6,11 @@ from src.utils import Parser, setup_logger
 
 logger = setup_logger()
 
+
 class Planner:
     def __init__(self, engine: dspy.dsp.LM, reasoning_engine: dspy.dsp.LM):
         self.engine = engine
-        self.reasoning_engine= reasoning_engine
+        self.reasoning_engine = reasoning_engine
 
     # prompt conversion
     def convert_prompt_with_focus(self, prompt: str):
@@ -17,73 +18,77 @@ class Planner:
         with dspy.settings.context(lm=self.engine):
             response = f(prompt=prompt)
         return response.topic, response.focus
-    
+
     def convert_prompt_to_topic(self, prompt: str):
         f = dspy.Predict(PromptConverter)
         with dspy.settings.context(lm=self.engine):
             response = f(prompt=prompt)
         return response.topic
-    
+
     def refine_topic(self, topic: str, information: str, prompt: str):
         f = dspy.ChainOfThought(TopicRefinement)
         with dspy.settings.context(lm=self.reasoning_engine):
             response = f(topic=topic, information=information, prompt=prompt)
         logger.info(f"Reasoning: {response.reasoning}")
         return response.refined_topic
-    
+
     # queries generation
-    def generate_queries_english(self, topic: str, summary: str=None):
+    def generate_queries_english(self, topic: str, summary: str = None):
         f = dspy.Predict(QueryGeneratorEnglish)
         with dspy.settings.context(lm=self.engine):
             response = f(topic=topic, summary=summary)
         return response.queries
-    
-    def generate_queries(self, topic: str, summary: str=None):
+
+    def generate_queries(self, topic: str, summary: str = None):
         f = dspy.Predict(QueryGenerator)
         with dspy.settings.context(lm=self.engine):
             response = f(topic=topic, summary=summary)
         return response.queries
-    
-   
+
     # topic exploration
     def generate_subtopics(self, topic: str, summary: str):
         f = dspy.Predict(SubtopicGenerator)
         with dspy.settings.context(lm=self.engine):
             response = f(topic=topic, summary=summary)
         return response.subtopics
-    
+
     def generate_related_topics(self, topic: str):
         f = dspy.Predict(RelatedTopicGenerator)
         with dspy.settings.context(lm=self.engine):
             response = f(topic=topic)
         return response.related_topics
-    
+
     # use weaker model to filter information (for broad search, extracting entities)
-    def filter_information(self, topic: str, focus: str, information: List[Information]):
+    def filter_information(
+        self, topic: str, focus: str, information: List[Information]
+    ):
         f = dspy.Predict(InformationFilter)
         response = f(topic=topic, focus=focus, information=information)
         return response.entities
-    
+
     # outline generation
-    def generate_outline(self, topic: str, information: List[str], summary: str=None):
+    def generate_outline(self, topic: str, information: List[str], summary: str = None):
         f = dspy.Predict(OutlineGenerator)
-        with dspy.settings.context(lm=self.reasoning_engine):
+        with dspy.settings.context(lm=self.engine):
             response = f(topic=topic, information=information, summary=summary)
-        return [Parser.clean_section_name(section_name) for section_name in response.outline]
-    
+        return [
+            Parser.clean_section_name(section_name) for section_name in response.outline
+        ]
+
     def refine_outline(self, outline: Outline):
         f = dspy.ChainOfThought(OutlineRefiner)
         with dspy.settings.context(lm=self.reasoning_engine):
             response = f(outline=outline)
         logger.info(f"Reasoning: {response.reasoning}")
         return response.refined_outline
-    
+
     def rearrange_sections(self, outline: Outline, summary: str):
         f = dspy.ChainOfThought(SectionRearranger)
         with dspy.settings.context(lm=self.reasoning_engine):
             response = f(outline=outline, summary=summary)
         logger.info(f"Reasoning: {response.reasoning}")
         return response.rearranged_outline
+
 
 # topic and focus extraction
 class PromptConverter(dspy.Signature):
@@ -93,9 +98,11 @@ class PromptConverter(dspy.Signature):
     1. 主题必须与prompt高度相关，避免过于宽泛的表述，应明确包含用户想要了解的具体领域或方面
     2. 用中文输出，对于名字则保留原文（如人名、项目名、作品名等）
     """
+
     prompt = dspy.InputField(prefix="原始prompt：")
     topic = dspy.OutputField(prefix="主题：")
-    
+
+
 class PromptConverterWithFocus(dspy.Signature):
     """
     给定用户的原始prompt，提取出主题，以作为符合用户要求的百科文章的标题。
@@ -104,6 +111,7 @@ class PromptConverterWithFocus(dspy.Signature):
     2. 聚焦点是用户想要收集的信息类型与详情，用简短的句子描述用户的需求
     3. 用中文输出
     """
+
     prompt = dspy.InputField(prefix="原始prompt：")
     topic = dspy.OutputField(prefix="主题：")
     focus = dspy.OutputField(prefix="聚焦点：")
@@ -119,10 +127,12 @@ class TopicRefinement(dspy.Signature):
     5. 如果原主题已经非常明确了，则不需要重写
     6. 使用中文输出
     """
+
     topic = dspy.InputField(prefix="文章标题：")
     information = dspy.InputField(prefix="参考信息：")
     prompt = dspy.InputField(prefix="原始prompt：")
     refined_topic = dspy.OutputField(prefix="细化后的文章标题：")
+
 
 # query generation
 class QueryGenerator(dspy.Signature):
@@ -133,10 +143,12 @@ class QueryGenerator(dspy.Signature):
     2. 每个条目的实体必须是主题中的实体（保留名词）
     3. 生成多样化的关键词，关键词不要重复，多用不同的近义词
     """
+
     topic = dspy.InputField(prefix="主题：")
     summary = dspy.InputField(prefix="当前主题简介：")
     queries: List[str] = dspy.OutputField(prefix="查询词列表：")
-    
+
+
 class QueryGeneratorEnglish(dspy.Signature):
     """
     Given a topic, generate diverse Google search queries
@@ -146,8 +158,10 @@ class QueryGeneratorEnglish(dspy.Signature):
     3. Generate diverse queries, avoid duplicate queries, and use different synonyms
     4. Output in English
     """
+
     topic = dspy.InputField(prefix="Topic:")
     queries: List[str] = dspy.OutputField(prefix="Query List:")
+
 
 # topic exploration
 class RelatedTopicGenerator(dspy.Signature):
@@ -158,8 +172,10 @@ class RelatedTopicGenerator(dspy.Signature):
     2. 相关主题的描述要与原主题的描述有所区别，不要使用同样的描述
     3. 用中文输出
     """
+
     topic = dspy.InputField(prefix="主题：")
     related_topics: List[str] = dspy.OutputField(prefix="相关主题列表：")
+
 
 class SubtopicGenerator(dspy.Signature):
     """
@@ -169,40 +185,48 @@ class SubtopicGenerator(dspy.Signature):
     2. 每个子主题必须与当前主题的总结有所区别
     3. 用中文输出
     """
+
     topic = dspy.InputField(prefix="主题：")
     summary = dspy.InputField(prefix="当前主题总结：")
     subtopics: List[str] = dspy.OutputField(prefix="子主题列表：")
-    
+
+
 # outline generation
 class OutlineGenerator(dspy.Signature):
     """
-    给定当前章节标题和信息，以研报风格将当前章节内容细分为多个子章节
+    给定当前章节标题和信息，以维基百科风格将当前章节内容细分为多个子章节
     生成规则：
     1. 只生成一级大纲，不进一步细分
     2. 不要生成“概述”作为子章节
     3. 确保子章节组织与顺序符合逻辑，以保证文章的连贯性与可读性
     4. 用中文输出
     """
+
     topic = dspy.InputField(prefix="当前章节标题：")
     information = dspy.InputField(prefix="信息：")
     summary = dspy.InputField(prefix="当前章节简介：")
     outline: List[str] = dspy.OutputField(prefix="子章节标题列表：")
-    
+
+
 class OutlineRefiner(dspy.Signature):
     """
-    以markdown格式（## 章节标题，### 子章节标题）以及研报风格重写给定的大纲，以确保可读性与逻辑流畅性
+    以markdown格式（## 章节标题，### 子章节标题）以及维基百科风格重写给定的大纲，以确保可读性与逻辑流畅性。
+    所生成的大纲必须基于原始大纲。
     生成规则：
-    1. 不要生成过多的子章节，同时确保子章节之间没有任何重复
-    2. 保证大纲按照人类的阅读习惯，比如逻辑关系以及阅读顺序
-    3. 不要生成章节序号
-    4. 用中文输出
+    1. 不要生成原大纲没有的章节或子章节
+    2. 只保留非常有区分度的子章节，且确保子章节之间没有任何重复
+    3. 保证大纲按照人类的阅读习惯，比如逻辑关系以及阅读顺序
+    4. 不要生成章节序号
+    5. 用中文输出
     """
-    outline = dspy.InputField(prefix="大纲：")
+
+    outline = dspy.InputField(prefix="原始大纲：")
     refined_outline = dspy.OutputField(prefix="完善后的大纲：")
+
 
 class SectionRearranger(dspy.Signature):
     """
-    给定大纲和主题简介，按照研报风格，重新排列这份研报大纲章节顺序，以确保大纲的逻辑性和可读性
+    给定大纲和主题简介，按照维基百科风格，重新排列这份大纲章节顺序，以确保大纲的逻辑性和可读性
     以markdown格式（## 章节标题，### 子章节标题）输出
     生成规则：
     1. 不要生成章节序号
@@ -210,18 +234,19 @@ class SectionRearranger(dspy.Signature):
     3. 介绍性质的章节（若有）应该放在前面，展望之类的章节（若有）应该放在后面
     4. 用中文输出
     """
+
     outline = dspy.InputField(prefix="大纲：")
     summary = dspy.InputField(prefix="主题简介：")
     rearranged_outline = dspy.OutputField(prefix="重新排列后的大纲：")
+
 
 # information filter
 class InformationFilter(dspy.Signature):
     """
     给定信息（包含实体和上下文），过滤出符合主题与聚焦点的实体
     """
+
     topic = dspy.InputField(prefix="主题：")
     focus = dspy.InputField(prefix="聚焦点：")
     information = dspy.InputField(prefix="信息：")
     entities: List[str] = dspy.OutputField(prefix="实体列表：")
-    
-    

@@ -5,6 +5,7 @@ from typing import List
 from src.utils import Parser
 from src.data_structure import MemoryUnit, Sentence, Paragraph
 
+
 class Outline:
     def __init__(self, title: str, layer: int = 1):
         self.title: str = Parser.clean_section_name(title)
@@ -33,13 +34,13 @@ class Outline:
 
     def to_flatten_list(self, only_leaf: bool = False) -> List[str]:
         flat_list = []
-        if self.layer != 1: # not root node
+        if self.layer != 1:  # not root node
             if only_leaf == False:
-                flat_list.append(self.title)    
-            elif len(self.children) == 0:
+                flat_list.append(self.title)
+            elif len(self.children) == 0:  # leaf node
                 flat_list.append(self.title)
         for child in self.children:
-            flat_list.extend(child.to_flatten_list())
+            flat_list.extend(child.to_flatten_list(only_leaf=only_leaf))
         return flat_list
 
     def to_dict(self):
@@ -53,43 +54,43 @@ class Outline:
 
     @classmethod
     def from_markdown(cls, title: str, markdown: str):
-        lines = markdown.strip().split('\n')
+        lines = markdown.strip().split("\n")
         root = cls(title=title)
         current_levels = [root]
         current_titles = [title]  # Track full hierarchical titles
-        
+
         for line in lines:
-            if not line.startswith('#'):
+            if not line.startswith("#"):
                 continue
-                
+
             # Count number of # to determine level
             level = 0
-            while level < len(line) and line[level] == '#':
+            while level < len(line) and line[level] == "#":
                 level += 1
-                
+
             raw_title = line[level:].strip()
-            
+
             # Handle nesting
             while len(current_levels) >= level:
                 current_levels.pop()
                 current_titles.pop()
-            
+
             # Ensure we have a parent to attach to
             if not current_levels:
                 current_levels.append(root)
                 current_titles.append(title)
-                
+
             # Create full hierarchical title path
             full_title = "//".join(current_titles + [raw_title])
-            
+
             # Create new outline node
             node = Outline(title=full_title, layer=level)
-            
+
             # Attach to parent and update tracking lists
             current_levels[-1].insert_child(node)
             current_levels.append(node)
             current_titles.append(raw_title)
-            
+
         return root
 
     @classmethod
@@ -122,7 +123,7 @@ class Outline:
 
     def __repr__(self) -> str:
         return self.to_markdown()
-    
+
 
 class Article:
     def __init__(
@@ -150,25 +151,30 @@ class Article:
 
     def add_paragraph(self, paragraph: Paragraph):
         self.paragraph_list.append(paragraph)
-    
+
     def get_all_working_context(self):
-        working_context = self.working_context
+        working_context = self.working_context.copy()
         for subsection in self.subsection_list:
             working_context.extend(subsection.get_all_working_context())
         return working_context
-    
-    
+
     def update_reference_dict(self):
         for working_context in self.get_all_working_context():
             self.add_reference(working_context.source.url)
-        
+
     @classmethod
-    def from_text(cls, title: str, layer: int, text: str, working_context: List[MemoryUnit] = []):
+    def from_text(
+        cls, title: str, layer: int, text: str, working_context: List[MemoryUnit] = []
+    ):
         article = cls(title=title, layer=layer, working_context=working_context)
-        paragraph_list = text.strip().split('\n\n')
+        paragraph_list = text.strip().split("\n\n")
         for paragraph in paragraph_list:
             sentence_list = Parser.split_chinese_sentences(paragraph)
-            sentence_list = [Sentence(content=sentence) for sentence in sentence_list if sentence.strip()]
+            sentence_list = [
+                Sentence(content=sentence)
+                for sentence in sentence_list
+                if sentence.strip()
+            ]
             article.add_paragraph(Paragraph(sentence_list=sentence_list))
         return article
 
@@ -176,33 +182,46 @@ class Article:
         result = {
             "title": self.title,
             "layer": self.layer,
-            "working_context": [working_context.to_dict() for working_context in self.working_context],
-            "subsection_list": [subsection.to_dict() for subsection in self.subsection_list],
-            "paragraph_list": [paragraph.to_dict() for paragraph in self.paragraph_list],
+            "working_context": [
+                working_context.to_dict() for working_context in self.working_context
+            ],
+            "subsection_list": [
+                subsection.to_dict() for subsection in self.subsection_list
+            ],
+            "paragraph_list": [
+                paragraph.to_dict() for paragraph in self.paragraph_list
+            ],
         }
         if self.layer == 1:
             result["reference_dict"] = {k: v for k, v in self.reference_dict.items()}
         return result
-        
+
     def save_to_files(self, output_dir: Path):
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         json_dir = output_dir / "json"
         json_dir.mkdir(parents=True, exist_ok=True)
         with open(json_dir / f"{self.title}.json", "w", encoding="utf-8") as f:
             json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
-            
+
         markdown_dir = output_dir / "markdown"
         markdown_dir.mkdir(parents=True, exist_ok=True)
         with open(markdown_dir / f"{self.title}.md", "w", encoding="utf-8") as f:
             f.write(self.__repr__(show_citation=True, show_reference=True))
-            
+
         txt_dir = output_dir / "txt"
         txt_dir.mkdir(parents=True, exist_ok=True)
         with open(txt_dir / f"{self.title}.txt", "w", encoding="utf-8") as f:
             f.write(self.__repr__(show_citation=False, show_reference=True))
-            
-    def __repr__(self, show_citation=False, show_reference=True) -> str:
+
+    def __repr__(
+        self,
+        show_citation=False,
+        show_reference=True,
+        reference_dict=None,
+    ) -> str:
+        if reference_dict is None:
+            reference_dict = self.reference_dict
         text = ""
         text += f"{'#' * self.layer} {self.title.split('//')[-1]}\n"
         for paragraph in self.paragraph_list:
@@ -210,17 +229,24 @@ class Article:
                 if show_citation:
                     cited_doc_id_set = set()
                     for citation in sentence.citation_list:
-                        cited_doc_id_set.add(self.reference_dict.inverse[citation.source.url])
+                        cited_doc_id_set.add(
+                            reference_dict.inverse[citation.source.url]
+                        )
                     cited_doc_ids = sorted(list(cited_doc_id_set))
-                    text += f"{sentence.content}[{','.join(cited_doc_ids)}]"
+                    text += (
+                        f"{sentence.content}[{','.join(str(x) for x in cited_doc_ids)}]"
+                    )
                 else:
                     text += f"{sentence.content}"
             text += "\n\n"
         for subsection in self.subsection_list:
-            subsection_text = subsection.__repr__(show_citation=show_citation)
+            subsection_text = subsection.__repr__(
+                show_citation=show_citation,
+                reference_dict=reference_dict,
+            )
             if subsection_text.strip():
                 text += f"{subsection_text}"
-        
+
         if show_reference and self.layer == 1:
             text += "## 参考文献\n"
             for doc_id in range(1, self.doc_cnt):
