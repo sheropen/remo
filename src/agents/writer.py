@@ -122,7 +122,7 @@ class SectionWriter(dspy.Signature):
 
 class CitationAdder(dspy.Signature):
     """
-    给定句子和信息列表，返回能支持该句子的信息id列表
+    给定句子和信息列表，返回所有包含该句子关键信息的信息id列表。
     """
 
     sentence = dspy.InputField(prefix="句子：")

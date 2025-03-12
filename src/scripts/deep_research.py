@@ -259,7 +259,9 @@ def main(
         # )
         rearranged_outline = refined_outline
 
-        with open(outline_dir / f"{topic}.json", "w", encoding="utf-8") as f:
+        with open(
+            outline_dir / f"{Parser.safe_title(topic)}.json", "w", encoding="utf-8"
+        ) as f:
             json.dump(rearranged_outline.to_dict(), f, ensure_ascii=False)
 
         flat_list = rearranged_outline.to_flatten_list(only_leaf=True)
@@ -348,7 +350,9 @@ def main(
         rewritten_content = writer.rewrite_article(article=article_content)
 
         with open(
-            DEEP_RESEARCH_DIR / "txt" / f"{topic}_rewritten.txt", "w", encoding="utf-8"
+            DEEP_RESEARCH_DIR / "rewritten" / f"{Parser.safe_title(topic)}.txt",
+            "w",
+            encoding="utf-8",
         ) as f:
             f.write(rewritten_content)
             f.write("\n\n## 参考文献\n")

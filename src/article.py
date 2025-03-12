@@ -201,17 +201,23 @@ class Article:
 
         json_dir = output_dir / "json"
         json_dir.mkdir(parents=True, exist_ok=True)
-        with open(json_dir / f"{self.title}.json", "w", encoding="utf-8") as f:
+        with open(
+            json_dir / f"{Parser.safe_title(self.title)}.json", "w", encoding="utf-8"
+        ) as f:
             json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
 
         markdown_dir = output_dir / "markdown"
         markdown_dir.mkdir(parents=True, exist_ok=True)
-        with open(markdown_dir / f"{self.title}.md", "w", encoding="utf-8") as f:
+        with open(
+            markdown_dir / f"{Parser.safe_title(self.title)}.md", "w", encoding="utf-8"
+        ) as f:
             f.write(self.__repr__(show_citation=True, show_reference=True))
 
         txt_dir = output_dir / "txt"
         txt_dir.mkdir(parents=True, exist_ok=True)
-        with open(txt_dir / f"{self.title}.txt", "w", encoding="utf-8") as f:
+        with open(
+            txt_dir / f"{Parser.safe_title(self.title)}.txt", "w", encoding="utf-8"
+        ) as f:
             f.write(self.__repr__(show_citation=False, show_reference=True))
 
     def __repr__(

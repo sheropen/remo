@@ -6,21 +6,20 @@ from pathlib import Path
 from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import re
+from pypinyin import lazy_pinyin
 
 
 def setup_logger():
-    log_dir = Path(__file__).parent.parent / 'logs'
+    log_dir = Path(__file__).parent.parent / "logs"
     log_dir.mkdir(exist_ok=True)
-    
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(log_dir / 'remo.log'),
-            logging.StreamHandler()
-        ]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(log_dir / "remo.log"), logging.StreamHandler()],
     )
     return logging.getLogger()
+
 
 def timer(func):
     @wraps(func)
@@ -31,14 +30,16 @@ def timer(func):
         execution_time = end_time - start_time
         logging.info(f"{func.__name__} took {execution_time:.2f} seconds to execute")
         return result
+
     return wrapper
+
 
 class Parser:
     @staticmethod
     def to_hash(text: str) -> str:
-        hash_obj = hashlib.sha256(text.encode('utf-8'))
+        hash_obj = hashlib.sha256(text.encode("utf-8"))
         return hash_obj.hexdigest()
-    
+
     @staticmethod
     def chunk_text(text: str, chunk_size: int) -> List[str]:
         content_splitter = RecursiveCharacterTextSplitter(
@@ -56,24 +57,55 @@ class Parser:
                 "\uff0c",  # Fullwidth comma
                 "\u3001",  # Ideographic comma
                 " ",
-                "\u200B",  # Zero-width space
+                "\u200b",  # Zero-width space
                 "",
             ],
         )
         chunks = content_splitter.split_text(text)
         return chunks
-    
+
     @staticmethod
     def clean_section_name(section_name: str) -> str:
         """Remove the number and dot from the section name"""
         return re.sub(r"^\d+\.\s*", "", section_name)
-    
+
     @staticmethod
     def split_chinese_sentences(text: str) -> List[str]:
         # adapt from https://www.cnblogs.com/ting1/p/16833884.html
-        para = re.sub('([。！？\?])([^”’])', r"\1\n\2", text) 
-        para = re.sub('(\.{6})([^”’])', r"\1\n\2", para) 
-        para = re.sub('(\…{2})([^”’])', r"\1\n\2", para) 
-        para = re.sub('([。！？\?][”’])([^，。！？\?])', r'\1\n\2', para)
-        para = para.rstrip() 
+        para = re.sub("([。！？\?])([^”’])", r"\1\n\2", text)
+        para = re.sub("(\.{6})([^”’])", r"\1\n\2", para)
+        para = re.sub("(\…{2})([^”’])", r"\1\n\2", para)
+        para = re.sub("([。！？\?][”’])([^，。！？\?])", r"\1\n\2", para)
+        para = para.rstrip()
         return para.split("\n")
+
+    @staticmethod
+    def safe_title(title: str) -> str:
+        """Sanitize a title string to be safe for use as a collection/file name."""
+
+        # Convert Chinese characters to pinyin while preserving English
+        parts = []
+        current_part = []
+
+        for char in title:
+            if "\u4e00" <= char <= "\u9fff":  # Chinese character range
+                if current_part:
+                    parts.append("".join(current_part))
+                    current_part = []
+                parts.extend(lazy_pinyin(char))
+            else:
+                current_part.append(char)
+
+        if current_part:
+            parts.append("".join(current_part))
+
+        pinyin_str = "_".join(parts)
+
+        # Replace any non-alphanumeric chars (except underscore) with underscore
+        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", pinyin_str)
+
+        # Remove any leading/trailing underscores
+        sanitized = sanitized.strip("_")
+
+        # maximum 60 characters for collection name
+        return sanitized[:60]

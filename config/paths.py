@@ -11,7 +11,7 @@ DB_DIR = DATA_DIR / "db"
 WEBPAGE_DIR = DATA_DIR / "webpage"
 OUTPUT_DIR = DATA_DIR / "output"
 BROAD_RESEARCH_DIR = OUTPUT_DIR / "broad_research"
-DEEP_RESEARCH_DIR = OUTPUT_DIR / "deep_research" / "huawei"
+DEEP_RESEARCH_DIR = OUTPUT_DIR / "deep_research"
 
 # Ensure directories exist
 DATA_DIR.mkdir(exist_ok=True)

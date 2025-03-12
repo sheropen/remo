@@ -51,7 +51,7 @@ class Memory:
 
         sentence_transformer_ef = (
             chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=model_path
+                model_name=model_path, device="cuda"
             )
         )
 
