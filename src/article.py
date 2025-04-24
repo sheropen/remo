@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 from src.utils import Parser
-from src.data_structure import MemoryUnit, Sentence, Paragraph
+from src.data_structure import MemoryUnit, Sentence, Paragraph, Webpage
 
 
 class Outline:
@@ -178,6 +178,54 @@ class Article:
             article.add_paragraph(Paragraph(sentence_list=sentence_list))
         return article
 
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Recursively reconstruct an Article object from JSON data."""
+        # Create base article
+        article = cls(title=data["title"], layer=data["layer"])
+
+        # Add working context
+        for context_data in data.get("working_context", []):
+            memory_unit = cls._reconstruct_memory_unit(context_data)
+            article.working_context.append(memory_unit)
+
+        # Add paragraphs
+        for paragraph_data in data.get("paragraph_list", []):
+            paragraph = cls._reconstruct_paragraph(paragraph_data)
+            article.add_paragraph(paragraph)
+
+        # Add subsections recursively
+        for subsection_data in data.get("subsection_list", []):
+            subsection = cls.from_dict(subsection_data)
+            article.add_subsection(subsection)
+
+        # Add reference dictionary if it exists
+        if "reference_dict" in data:
+            for doc_id, url in data["reference_dict"].items():
+                article.reference_dict[int(doc_id)] = url
+            article.doc_cnt = max(article.reference_dict.keys(), default=0) + 1
+
+        return article
+
+    @staticmethod
+    def _reconstruct_memory_unit(data: dict) -> MemoryUnit:
+        """Reconstruct a MemoryUnit object from JSON data."""
+        memory_unit = MemoryUnit(content=data["content"], source=Webpage(**data["source"]))
+        return memory_unit
+
+    @classmethod
+    def _reconstruct_paragraph(cls, data: dict) -> Paragraph:
+        """Reconstruct a Paragraph object from JSON data."""
+        sentence_list = []
+        for sentence_data in data["sentence_list"]:
+            sentence = Sentence(content=sentence_data["content"])
+            if "citation_list" in sentence_data:
+                for citation_data in sentence_data["citation_list"]:
+                    citation = cls._reconstruct_memory_unit(citation_data)
+                    sentence.citation_list.append(citation)
+            sentence_list.append(sentence)
+        return Paragraph(sentence_list=sentence_list)
+
     def to_dict(self):
         result = {
             "title": self.title,
@@ -232,7 +280,7 @@ class Article:
         text += f"{'#' * self.layer} {self.title.split('//')[-1]}\n"
         for paragraph in self.paragraph_list:
             for sentence in paragraph.sentence_list:
-                if show_citation:
+                if show_citation and sentence.citation_list:
                     cited_doc_id_set = set()
                     for citation in sentence.citation_list:
                         cited_doc_id_set.add(
