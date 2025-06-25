@@ -223,13 +223,13 @@ class InformationExtractor(dspy.Signature):
     1. 提取所有与主题完全相关的事实
     2. 每条事实是完整的独立的陈述句或段落，其中必须包含：
         - 命名实体（人名、组织、地点、产品等）
-        - 事实的时间信息，“今”等描述可由网页创建时间推断
+        - 事实的时间信息，“今”等描述可由网页发布时间推断，但不要过度推断
     3. 不要出现任何代词，如“它”、“他们”、“这个”、“那个”、“该”等，应补全相应的命名实体
     4. 如果内容与主题无关，返回空列表 []
     """
     title = dspy.InputField(prefix="网页标题：")
     link = dspy.InputField(prefix="网页链接：")
-    date = dspy.InputField(prefix="网页日期：")
+    date = dspy.InputField(prefix="网页发布日期：")
     content = dspy.InputField(prefix="网页内容：")
     
     topic = dspy.InputField(prefix="主题：")
