@@ -10,7 +10,6 @@ SERP_DIR = DATA_DIR / "serp"
 DB_DIR = DATA_DIR / "db"
 WEBPAGE_DIR = DATA_DIR / "webpage"
 OUTPUT_DIR = DATA_DIR / "output"
-BROAD_RESEARCH_DIR = OUTPUT_DIR / "broad_research"
 DEEP_RESEARCH_DIR = OUTPUT_DIR / "deep_research"
 
 # Ensure directories exist
@@ -20,9 +19,8 @@ SERP_DIR.mkdir(exist_ok=True)
 WEBPAGE_DIR.mkdir(exist_ok=True)
 DB_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
-BROAD_RESEARCH_DIR.mkdir(exist_ok=True)
 DEEP_RESEARCH_DIR.mkdir(exist_ok=True)
 
 # File paths
 CONFIG_FILE = ROOT_DIR / "config.yaml"
-LOG_FILE = LOGS_DIR / "remo.log"
+LOG_FILE = LOGS_DIR / "app.log"

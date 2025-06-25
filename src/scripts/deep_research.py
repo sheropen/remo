@@ -7,6 +7,7 @@ import argparse
 import logging
 import concurrent.futures
 from config.paths import DEEP_RESEARCH_DIR
+from config.constants import Constants
 from src.agents.retriever import Retriever
 from src.agents.planner import Planner
 from src.agents.writer import Writer
@@ -19,30 +20,18 @@ logger = setup_logger()
 parent_dir = Path(__file__).parent.parent.parent
 load_dotenv(parent_dir / ".env")
 
-
-MAX_QUERY = 3
-MAX_SUBTOPIC = 3
-MAX_RESULTS = 10
-MAX_SUBTOPIC_EXPLORER_DEPTH = 1
-MAX_OUTLINE_DEPTH = 2
-MIN_MEMORY_UNITS_FOR_SUBSECTION = 10
-
-model = "openai/deepseek-v3-241226"
-reasoning_model = "openai/deepseek-r1-250120"
-writing_model = "openai/qwen-max"
-
 lm = dspy.LM(
-    model=model,
-    api_key=os.getenv("ARK_API_KEY"),
-    api_base=os.getenv("ARK_BASE_URL"),
+    model=Constants.MODEL,
+    api_key=os.getenv("ALIYUN_API_KEY"),
+    api_base=os.getenv("ALIYUN_BASE_URL"),
 )
 reasoning_lm = dspy.LM(
-    model=reasoning_model,
-    api_key=os.getenv("ARK_API_KEY"),
-    api_base=os.getenv("ARK_BASE_URL"),
+    model=Constants.REASONING_MODEL,
+    api_key=os.getenv("ALIYUN_API_KEY"),
+    api_base=os.getenv("ALIYUN_BASE_URL"),
 )
 writing_lm = dspy.LM(
-    model=writing_model,
+    model=Constants.WRITING_MODEL,
     api_key=os.getenv("ALIYUN_API_KEY"),
     api_base=os.getenv("ALIYUN_BASE_URL"),
 )
@@ -62,16 +51,12 @@ writer = Writer(engine=lm, better_engine=writing_lm)
 
 @timer
 def research_topic(topic, summary):
-    chinese_queries = planner.generate_queries(topic=topic, summary=summary)
-    # english_queries = planner.generate_queries_english(topic=topic, summary=summary)
-    # queries = chinese_queries[: MAX_QUERY // 2] + english_queries[: MAX_QUERY // 2]
-    queries = chinese_queries[:MAX_QUERY]
-    serp_results = retriever.search(queries=queries, max_results=MAX_RESULTS)
+    queries = planner.generate_queries(topic=topic, summary=summary)
+    serp_results = retriever.search(queries=queries[:Constants.MAX_QUERY], max_results=Constants.MAX_RESULTS)
     webpages = retriever.fetch_webpages(webpages=serp_results, timeout=10)
     memory_units = retriever.extract_memory_units(topic=topic, webpages=webpages)
     logger.info(
-        # f"Topic: {topic}, Generated {len(chinese_queries)} + {len(english_queries)} queries, {len(serp_results)} search results, {len(webpages)} webpages, {len(memory_units)} memory units"
-        f"Topic: {topic}, Generated {len(chinese_queries)} queries, {len(serp_results)} search results, {len(webpages)} webpages, {len(memory_units)} memory units"
+        f"Topic: {topic}, Generated {Constants.MAX_QUERY}/{len(queries)} queries, {len(serp_results)} search results, {len(webpages)} webpages, {len(memory_units)} memory units"
     )
     return memory_units
 
@@ -84,10 +69,10 @@ def recursive_research_subtopic(topic, summary, layer=1):
         information=[unit.content for unit in memory_units]
     )
     note_dict[topic] = summary
-    if layer <= MAX_SUBTOPIC_EXPLORER_DEPTH:
+    if layer <= Constants.MAX_SUBTOPIC_EXPLORER_DEPTH:
         # subtopics take the format of "topic//subtopic"
         subtopics = planner.generate_subtopics(topic=topic, summary=summary)[
-            :MAX_SUBTOPIC
+            :Constants.MAX_SUBTOPIC
         ]
         subtopics = [f"{topic}//{subtopic}" for subtopic in subtopics]
         with ThreadPoolExecutor() as executor:
@@ -113,9 +98,9 @@ def recursive_generate_outline(
 
     should_label = True  # do not label first
 
-    if layer > MAX_OUTLINE_DEPTH or (
+    if layer > Constants.MAX_OUTLINE_DEPTH or (
         len(memory.retrieve_information(query=title, k=100, constraint=constraint))
-        <= MIN_MEMORY_UNITS_FOR_SUBSECTION
+        <= Constants.MIN_MEMORY_UNITS_FOR_SUBSECTION
         and should_label
     ):
         return outline
@@ -165,7 +150,7 @@ def recursive_generate_outline(
 
 @timer
 def bootstrap(topic: str):
-    serp_results = retriever.search(queries=[topic], max_results=MAX_RESULTS)
+    serp_results = retriever.search(queries=[topic], max_results=Constants.MAX_RESULTS)
     webpages = retriever.fetch_webpages(serp_results, timeout=10)
     memory_units = retriever.extract_memory_units(topic=topic, webpages=webpages)
     information = [unit.content for unit in memory_units]
@@ -203,21 +188,16 @@ def add_citations(article: Article):
 
 @timer
 def main(
-    prompt,
+    topic,
     skip_research=False,
     skip_outline=False,
     skip_write=False,
     force_recreate=False,
 ):
-    # topic = planner.convert_prompt_to_topic(prompt=prompt)
-    topic = prompt
     logger.info(f"Article Topic: {topic}")
 
     summary = bootstrap(topic=topic)
     logger.info(f"Summary: {summary}")
-
-    # topic = planner.refine_topic(topic=topic, information=summary, prompt=prompt)
-    # logger.info(f"Refined Topic: {topic}")
 
     # memory construction
     memory = Memory(topic=topic, engine=lm, force_recreate=force_recreate)
@@ -248,15 +228,6 @@ def main(
         )
         logger.info(f"Refined Outline: {refined_outline.to_markdown(show_title=True)}")
 
-        # rearranged_outline_markdown = planner.rearrange_sections(
-        #     outline=refined_outline, summary=summary
-        # )
-        # rearranged_outline = Outline.from_markdown(
-        #     title=topic, markdown=rearranged_outline_markdown
-        # )
-        # logger.info(
-        #     f"Rearranged Outline: {rearranged_outline.to_markdown(show_title=True)}"
-        # )
         rearranged_outline = refined_outline
 
         with open(
@@ -349,6 +320,7 @@ def main(
         article_content = article.__repr__(show_citation=False, show_reference=False)
         rewritten_content = writer.rewrite_article(article=article_content)
 
+        os.makedirs(DEEP_RESEARCH_DIR / "rewritten", exist_ok=True)
         with open(
             DEEP_RESEARCH_DIR / "rewritten" / f"{Parser.safe_title(topic)}.txt",
             "w",
@@ -362,7 +334,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Deep research on a topic")
-    parser.add_argument("prompt", type=str, help="Research prompt")
+    parser.add_argument("topic", type=str, help="Research topic")
     parser.add_argument(
         "--skip-research", action="store_true", help="Skip research phase"
     )
@@ -375,7 +347,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     main(
-        args.prompt,
+        args.topic,
         skip_research=args.skip_research,
         skip_outline=args.skip_outline,
         skip_write=args.skip_write,

@@ -14,6 +14,7 @@ from config.paths import DB_DIR
 from config.constants import EmbeddingModel
 from src.data_structure import MemoryUnit, Webpage
 from src.utils import Parser, timer, setup_logger
+import torch
 
 
 logger = setup_logger()
@@ -49,9 +50,10 @@ class Memory:
         else:
             model_path = EmbeddingModel.CONAN.value
 
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         sentence_transformer_ef = (
             chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=model_path, device="cuda"
+                model_name=model_path, device=device
             )
         )
 

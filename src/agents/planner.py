@@ -6,24 +6,10 @@ from src.utils import Parser, setup_logger
 
 logger = setup_logger()
 
-
 class Planner:
     def __init__(self, engine: dspy.dsp.LM, reasoning_engine: dspy.dsp.LM):
         self.engine = engine
         self.reasoning_engine = reasoning_engine
-
-    # prompt conversion
-    def convert_prompt_with_focus(self, prompt: str):
-        f = dspy.Predict(PromptConverterWithFocus)
-        with dspy.settings.context(lm=self.engine):
-            response = f(prompt=prompt)
-        return response.topic, response.focus
-
-    def convert_prompt_to_topic(self, prompt: str):
-        f = dspy.Predict(PromptConverter)
-        with dspy.settings.context(lm=self.engine):
-            response = f(prompt=prompt)
-        return response.topic
 
     def refine_topic(self, topic: str, information: str, prompt: str):
         f = dspy.ChainOfThought(TopicRefinement)
@@ -31,13 +17,6 @@ class Planner:
             response = f(topic=topic, information=information, prompt=prompt)
         logger.info(f"Reasoning: {response.reasoning}")
         return response.refined_topic
-
-    # queries generation
-    def generate_queries_english(self, topic: str, summary: str = None):
-        f = dspy.Predict(QueryGeneratorEnglish)
-        with dspy.settings.context(lm=self.engine):
-            response = f(topic=topic, summary=summary)
-        return response.queries
 
     def generate_queries(self, topic: str, summary: str = None):
         f = dspy.Predict(QueryGenerator)
@@ -89,34 +68,6 @@ class Planner:
         logger.info(f"Reasoning: {response.reasoning}")
         return response.rearranged_outline
 
-
-# topic and focus extraction
-class PromptConverter(dspy.Signature):
-    """
-    给定用户的原始prompt，提取出主题，以作为符合用户要求的维基百科文章的标题。
-    生成规则：
-    1. 主题必须与prompt高度相关，避免过于宽泛的表述，应明确包含用户想要了解的具体领域或方面
-    2. 用中文输出，对于名字则保留原文（如人名、项目名、作品名等）
-    """
-
-    prompt = dspy.InputField(prefix="原始prompt：")
-    topic = dspy.OutputField(prefix="主题：")
-
-
-class PromptConverterWithFocus(dspy.Signature):
-    """
-    给定用户的原始prompt，提取出主题，以作为符合用户要求的百科文章的标题。
-    生成规则：
-    1. 主题必须与prompt高度相关，避免过于宽泛的表述，应明确包含用户想要了解的具体领域或方面
-    2. 聚焦点是用户想要收集的信息类型与详情，用简短的句子描述用户的需求
-    3. 用中文输出
-    """
-
-    prompt = dspy.InputField(prefix="原始prompt：")
-    topic = dspy.OutputField(prefix="主题：")
-    focus = dspy.OutputField(prefix="聚焦点：")
-
-
 class TopicRefinement(dspy.Signature):
     """
     对主题进行精确重写。重写时需要:
@@ -133,8 +84,6 @@ class TopicRefinement(dspy.Signature):
     prompt = dspy.InputField(prefix="原始prompt：")
     refined_topic = dspy.OutputField(prefix="细化后的文章标题：")
 
-
-# query generation
 class QueryGenerator(dspy.Signature):
     """
     给定主题，生成多样化的谷歌搜索条目
@@ -148,22 +97,6 @@ class QueryGenerator(dspy.Signature):
     summary = dspy.InputField(prefix="当前主题简介：")
     queries: List[str] = dspy.OutputField(prefix="查询词列表：")
 
-
-class QueryGeneratorEnglish(dspy.Signature):
-    """
-    Given a topic, generate diverse Google search queries
-    Guidelines:
-    1. Each query must be a series of keywords separated by spaces
-    2. Each query must be related to the topic
-    3. Generate diverse queries, avoid duplicate queries, and use different synonyms
-    4. Output in English
-    """
-
-    topic = dspy.InputField(prefix="Topic:")
-    queries: List[str] = dspy.OutputField(prefix="Query List:")
-
-
-# topic exploration
 class RelatedTopicGenerator(dspy.Signature):
     """
     给定主题，生成相关主题
@@ -190,8 +123,6 @@ class SubtopicGenerator(dspy.Signature):
     summary = dspy.InputField(prefix="当前主题总结：")
     subtopics: List[str] = dspy.OutputField(prefix="子主题列表：")
 
-
-# outline generation
 class OutlineGenerator(dspy.Signature):
     """
     给定当前章节标题和信息，以维基百科风格将当前章节内容细分为多个子章节
@@ -206,7 +137,6 @@ class OutlineGenerator(dspy.Signature):
     information = dspy.InputField(prefix="信息：")
     summary = dspy.InputField(prefix="当前章节简介：")
     outline: List[str] = dspy.OutputField(prefix="子章节标题列表：")
-
 
 class OutlineRefiner(dspy.Signature):
     """
@@ -223,7 +153,6 @@ class OutlineRefiner(dspy.Signature):
     outline = dspy.InputField(prefix="原始大纲：")
     refined_outline = dspy.OutputField(prefix="完善后的大纲：")
 
-
 class SectionRearranger(dspy.Signature):
     """
     给定大纲和主题简介，按照维基百科风格，重新排列这份大纲章节顺序，以确保大纲的逻辑性和可读性
@@ -239,8 +168,6 @@ class SectionRearranger(dspy.Signature):
     summary = dspy.InputField(prefix="主题简介：")
     rearranged_outline = dspy.OutputField(prefix="重新排列后的大纲：")
 
-
-# information filter
 class InformationFilter(dspy.Signature):
     """
     给定信息（包含实体和上下文），过滤出符合主题与聚焦点的实体

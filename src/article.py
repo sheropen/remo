@@ -84,7 +84,7 @@ class Outline:
             full_title = "//".join(current_titles + [raw_title])
 
             # Create new outline node
-            node = Outline(title=full_title, layer=level)
+            node = cls(title=full_title, layer=level)
 
             # Attach to parent and update tracking lists
             current_levels[-1].insert_child(node)
@@ -117,7 +117,8 @@ class Outline:
             for section in sections[1:]:  # Skip the root title
                 child = next((c for c in current.children if c.title == section), None)
                 if not child:
-                    child = current.create_child(section)
+                    child = cls(title=section)
+                    current.insert_child(child)
                 current = child
         return root
 
@@ -283,13 +284,17 @@ class Article:
                 if show_citation and sentence.citation_list:
                     cited_doc_id_set = set()
                     for citation in sentence.citation_list:
-                        cited_doc_id_set.add(
-                            reference_dict.inverse[citation.source.url]
-                        )
+                        if citation.source.url in reference_dict.inverse:
+                            cited_doc_id_set.add(
+                                reference_dict.inverse[citation.source.url]
+                            )
                     cited_doc_ids = sorted(list(cited_doc_id_set))
-                    text += (
-                        f"{sentence.content}[{','.join(str(x) for x in cited_doc_ids)}]"
-                    )
+                    if cited_doc_ids:
+                        text += (
+                            f"{sentence.content}[{','.join(str(x) for x in cited_doc_ids)}]"
+                        )
+                    else:
+                        text += f"{sentence.content}"
                 else:
                     text += f"{sentence.content}"
             text += "\n\n"
@@ -304,5 +309,6 @@ class Article:
         if show_reference and self.layer == 1:
             text += "## 参考文献\n"
             for doc_id in range(1, self.doc_cnt):
-                text += f"[{doc_id}] {self.reference_dict[doc_id]}\n"
+                if doc_id in self.reference_dict:
+                    text += f"[{doc_id}] {self.reference_dict[doc_id]}\n"
         return text
