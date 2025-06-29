@@ -1,0 +1,5 @@
+# Station layout
+## Power and signaling system
+Like all other stations and railways of Mumbai metro, Gundavali station also uses 25,000 volt AC power system by overhead catenary to operate the trains.
+
+# Entry/Exits

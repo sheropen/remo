@@ -1,0 +1,29 @@
+Dzongkha is a Sino-Tibetan language spoken in Bhutan. This article uses Roman Dzongkha to indicate pronunciation.
+
+# Nouns
+## Number
+Dzongkha nouns distinguish between singular (unmarked) and plural, with the plural either unmarked or suffixed with ཚུ་ -tshu. The use of the plural suffix is not obligatory and is used mainly for emphasis.
+
+## Case
+Dzongkha nouns are marked for 5 cases: genitive, locative, ablative, dative and ergative.
+
+genitive case: marks possession and is often translated as "of". There are 4 genitive suffixes in written Dzongkha:
+གྱི་ -g°i - after words ending in མ་, ན་, ར་, ལ་. གི་ -g°i - after words ending in ག་, ང་ and certain words ending a vowel. ཀྱི་ -g°i - ater words ending in བ་, ད་, ས་. འི་ -i after certain words ending in a vowel. locative case - marks location or destination and is often translated as "in", "at" or "on". It's indicated by the suffix ནང་ -na. ablative case - marks direction away from the noun and is often translated as "from". It's indicated by the suffix ལས་ -lä. dative case - marks the goal or where an activity takes place and is often translated as "to", "for" or "at". It's indicated by the suffix ལུ་ -lu. ergative case - used for ergative and instrumental functions. There are 3 ergative suffixes in written Dzongkha:
+གྱིས་ -g°i - after words ending in མ་, ན་, ར་, ལ་. གིས་ -g°i - after words ending in ག་, ང་ or a vowel. ཀྱིས་ -g°i - ater words ending in བ་, ད་, ས་.
+
+## Derivation
+As in other Tibetic languages, compounding is the most common method for deriving new nouns in Dzongkha. A compound usually consists of two (or, less commonly, more) monossyllabic roots, which can be either free or bound.
+
+# Pronouns
+## Personal pronouns
+The honorific pronoun ནཱ༌ nâ and its plural form are used when one wants to show respect to the person being addressed or to a 3rd person of either gender.
+
+# Verbs
+## Copula
+In Dzongkha, there are 5 copular verbs that can be translated as "to be" in English: ཨིན་ 'ing, ཨིན་པས་ 'immä, ཡོད་ yö, འདུག་ du and སྨོ་ 'mo.
+
+# Adjectives
+## Comparison
+The comparative is indicated by the suffix བ་ -wa  ("than") while the superlative is indicated by the suffix ཤོས་ -sho ("the most", "-est").
+
+# Numerals

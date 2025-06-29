@@ -1,0 +1,44 @@
+# Phonology
+Typical of Lesser Polish dialects (as well as Greater Polish dialects), voicing of word-final consonants before vowels and liquids is present here. Also typical of Lesser Polish dialects is the presence of mazuration. In the south, word-initial stress in both words and prepositional phrases is common, and in the north, both penultimate and initial can be heard, with prepositional phrases taking penultimate stress.
+
+## Vowels
+i is retained after rz, which is pronounced as in Standard Polish, or may shift to ś, ‘warziwa (warzywa), psinieśli (przynieśli), however the so-called “Podhalanian archaism” (i after etymological cz, ż, sz, now c, z, s) is not present here, and y is present after these consonant instead. Very often -e- is preferred in stems more than -o-: przyniesła (przyniosła), jedła (jodła). o often fronts to -e- near r: regi (rogi).
+
+### Slanted vowels
+Slanted á raises to o. Slanted é raises to y, and sometimes final -e is realized as -i due to Silesian influence.
+
+### Nasal vowels
+Nasal vowels can be realized three different ways depending on region: 1) merging the nasal with denasalization (more in the north), 2) having two nasals but tending towards merging 3) having two nasals (more in the south), with all three systems being inconsistently pronounced; sometimes nasals may also be pronounced as in Standard Polish, or with raising. In the north, denasalization word-medially occurs before any consonant: siogali (sięgali), zajoce (zające), and sometimes piyknie (pięknie). Final -ą shifts to -o, and is consistently changed in the third person present/future tense and the accusative and instrumental feminine singular of nouns. A few exceptions can be heard. Final -ę may merge with -ą and then further to -o, or more commonly be realized as -e. The feminine instrumental singular of nouns (as well as masculine nouns ending in -a) may be realized as -om as well. eN is typically raised to yN, or to oN in certain inflections, such as in gerunds: do cedzonio (do cedzenia), the instrumental masculine singular: gniojom (gnojem), the first person present/future singular: powiom (powiem), the first person present/future plural: dajomy (dajemy), and in a few other isolated cases. aN can often raise to oN. In the south, nasals are closer to the standard, but usually undergo raising, so ę > yN, ą > óN, oN. -ę typically denasalizes word-finally, and final -ą is typically realized as -om, especially in grammatical endings such as the third person plural present/future of verbs and the instrumental singular of feminine nouns. Complete medial denasalization can occur in a few words. Here, eN raises to yN as well, or in a few exceptions, to oN. Verbs ending in -ąć typically lose ł, l in past tense forms: wzion (wziął). áN raises to óN.
+
+### Prothesis
+Initial o- usually labializes to ô-, as well as medial -o- after labials and velars. u can also sometimes labialize to û- in these positions, especially initially. Initial i- may gain a prothetic j-, and initial a- may sporadically gain a prothetic h-.
+
+## Consonants
+Intervocalic voicing is also here. In the south, in the infinitive of verbs, final -ć is usually replaced with -j: budowaj (budować). This can also occur in a few other particularly common words. The change of word-final -ch > -k is well preserved here, and can happen not only in grammatical endings but stems as well, and the resulting k can undergo voicing when before vowels and liquids. ch changes to k also in clusters, especially chrz > krz, chc // chć > kc // kć, chw > kw, sch > sk, and cht > kt, except “chwycić” (and its prefixed derivatives), as this word did not gain a secondary -w-, and is pronounced as (original) chycić. ł in clusters may disappear: ‘pôsuchojcie (posłuchajcie). Simplification of consonant clusters is common here, such as geminated consonants, particularly cc (from czc) and nn: na misece, na miseczce. Final -ść, -źć usually reduce to -ś, -ź here.
+
+## Contraction
+As a result of initial accent, many unaccented syllables undergo elision: chałpa/chołpa = chałupa. Shortening of this kind may also occur via other processes, such as analogy.
+
+# Inflection
+Some inflectional tendencies are the result of Silesian influence.
+
+## Nouns
+There is a preference for -a over -u in the masculine genitive singular of nouns. The archaic -e of feminine genitive singular of soft stems is preserved: ‘do ziemie (do ziemi). -ów is often used as the genitive plural regardless of gender. The masculine locative singular shows syncretism with the masculine dative singular: pôwim o kôniowi (powiem o koniu). Soft-stem neuter nouns in the nominative/accusative singular end in -i in(from old slanted é, from *-ьje) as the result of Silesian influence: śniadani (śniadanie). Rarely -o in the nominative/accusative singular of soft-stem neuter nouns due to Silesian influence: zielo (ziele)
+
+## Adjectives and adverbs
+Due to Silesian influence-i is used in the nominative/accusative neuter of adjectives and pronouns due to Silesian influence: taki sukno (takie sukno), -i is used for the non-masculine plural of adjectives and pronouns: ôgródecki ‘malutki (ogródeczki malutkie); and -igo/-ygo is used for the masculine/neuter genitive singular of adjectives and pronouns (as the result from old slanted é): z takigo (z takiego).
+
+## Verbs
+The infinitive may end in -j due to sound changes. As in many other Goral dialects, namely Orawa, Podhale, and Spisz, the first personal singular present/future tense of verbs is typically -em, of Slovakian origin: jezdzem (jeżdżę). The first person plural present/future verb forms are often levelled via analogy: idemy, chodzemy, mogemy (idziemy, chodzimy, możemy). The aorist is retained in the first person singular, with a shift of -ch > -k: chciałabyk (chciałabym). The first person plural past tense often has -my instead of -śmy, probably as a result of a reduction of -chmy (from the aorist -ch- + -my): ‘bawilimy sie (bawiliśmy się). Many verbs take a different paradigm than in Standard Polish: czymie (trzyma). Many passive adjectival participles are formed with -t- instead of Standard Polish -n-: ôblaty (oblany).
+
+# Vocabulary
+## Word-Formation
+Typical southern word-formation features can be found here.
+
+### Adjectives
+Indeterminate pronouns and adverbs are commonly suffixed with -ik and -si, cosik (coś), skądsik (skądś). Adjectives are commonly formed with -aty: kwiociaty (kwiaciasty).
+
+### Verbs
+Frequentative verbs are formed with -ować: ‘chodzowoł (chadzał).
+
+# Syntax

@@ -1,0 +1,11 @@
+The Pixel Watch 3 is a Wear OS smartwatch designed, developed, and marketed by Google as part of the Google Pixel product line. It serves as the successor to the second-generation Pixel Watch. The Pixel Watch 3 was officially announced on August 13, 2024, at the annual Made by Google event, and was released in the United States on September 10.
+
+# History
+9to5Google reported in January 2024 that Google was planning to release the Pixel Watch 3 in two sizes. The device was approved by the Federal Communications Commission (FCC) in July of that year. Google officially announced the Pixel Watch 3 on August 13, alongside the Pixel 9, Pixel 9 Pro, and Pixel 9 Pro Fold, at the annual Made by Google event.
+
+# Specifications
+## Design
+The Pixel Watch 3 retains the same basic design as the prior Pixel Watch 1 and 2 and is marketed in two sizes, 41 and 45 mm in diameter. While the 41 mm watch matches the size of prior Pixel Watches, the bezels are slightly smaller and there is 10% more display area. The 45 mm watch has 40% more display area compared to prior models. For each size, the maximum brightness is 2000 nits.
+
+## Hardware
+## Software
