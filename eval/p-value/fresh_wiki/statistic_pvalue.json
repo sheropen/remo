@@ -1,0 +1,56 @@
+{
+  "unique_entity_count": {
+    "p_value": 4.379198805241892e-17,
+    "mean_difference": 51.97,
+    "mog_mean": 155.25,
+    "baseline_mean": 103.28,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "word_count": {
+    "p_value": 1.4450063632323947e-05,
+    "mean_difference": 375.6100000000001,
+    "mog_mean": 2490.03,
+    "baseline_mean": 2114.42,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "special_number_count": {
+    "p_value": 8.253727116249663e-15,
+    "mean_difference": 6.359999999999999,
+    "mog_mean": 13.87,
+    "baseline_mean": 7.51,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "sentence_count": {
+    "p_value": 5.96301764637138e-12,
+    "mean_difference": 36.42999999999999,
+    "mog_mean": 138.69,
+    "baseline_mean": 102.26,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "section_count": {
+    "p_value": 1.7928125145126404e-20,
+    "mean_difference": 10.83,
+    "mog_mean": 24.86,
+    "baseline_mean": 14.03,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "paragraph_count": {
+    "p_value": 0.9300887352844818,
+    "mean_difference": -1.6900000000000013,
+    "mog_mean": 25.72,
+    "baseline_mean": 27.41,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  }
+}

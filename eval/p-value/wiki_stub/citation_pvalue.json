@@ -1,0 +1,29 @@
+{
+  "sent_cited_rate": {
+    "p_value": 0.14926232402650005,
+    "mean_difference": 2.3442351482720767,
+    "mog_mean": 95.91285268177904,
+    "baseline_mean": 93.56861753350697,
+    "significant": false,
+    "sample_size": 79,
+    "best_baseline": "rag"
+  },
+  "citation_prec": {
+    "p_value": 6.4156438287788e-05,
+    "mean_difference": 10.270008180612308,
+    "mog_mean": 76.57025293124681,
+    "baseline_mean": 66.3002447506345,
+    "significant": true,
+    "sample_size": 79,
+    "best_baseline": "storm"
+  },
+  "citation_rec": {
+    "p_value": 0.00011861952327084993,
+    "mean_difference": 9.817096402744752,
+    "mog_mean": 82.14447808874772,
+    "baseline_mean": 72.32738168600297,
+    "significant": true,
+    "sample_size": 79,
+    "best_baseline": "rag"
+  }
+}

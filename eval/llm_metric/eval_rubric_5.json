@@ -8,12 +8,20 @@
     "score5_description": "Exceptionally engaging throughout, with a compelling narrative that consistently stimulates interest."
   },
   {
-    "criteria_description": "Coherence and Organization: Is the article well-organized and logically structured?",
-    "score1_description": "Disorganized; lacks logical structure and coherence.",
-    "score2_description": "Fairly organized; a basic structure is present but not consistently followed.",
-    "score3_description": "Organized; a clear structure is mostly followed with some lapses in coherence.",
-    "score4_description": "Good organization; a clear structure with minor lapses in coherence.",
-    "score5_description": "Excellently organized; the article is logically structured with seamless transitions and a clear argument."
+    "criteria_description": "Fluency: Is the article written in clear, coherent, and grammatically correct language, ensuring readability and ease of understanding while maintaining an encyclopedic tone?",
+    "score1_description": "Very poor fluency; numerous grammatical errors, awkward phrasing, and disjointed sentences make the article difficult to understand and detract from its neutrality.",
+    "score2_description": "Poor fluency; several grammatical mistakes and awkward sentence structures hinder readability, reducing clarity and neutral tone.",
+    "score3_description": "Adequate fluency; some minor grammatical errors and occasional awkward phrasing, but overall clear, neutral, and understandable, though it may lack a fully smooth flow.",
+    "score4_description": "Good fluency; minimal grammatical errors, smooth sentence flow, and clear language that enhances readability and maintains a neutral, encyclopedic tone.",
+    "score5_description": "Excellent fluency; flawless grammar, seamless sentence structure, and highly clear, concise language that is both easy to read and fully aligned with the neutral, objective tone required for a high-quality Wikipedia article."
+  },
+  {
+    "criteria_description": "Organization: Is the Wikipedia article structured according to Wikipedia's guidelines with clear sections and logical flow?",
+    "score1_description": "Poorly organized; lacks clear sections, headings are missing or inappropriate, and the structure does not follow Wikipedia guidelines.",
+    "score2_description": "Inadequately organized; some sections are present but lack clear headings or logical order, partially adhering to Wikipedia structure.",
+    "score3_description": "Adequately organized; includes standard sections with mostly appropriate headings and a logical flow, follows Wikipedia structure with minor issues.",
+    "score4_description": "Well organized; clear and appropriate sections and headings, logical flow, adheres to Wikipedia organizational standards with few minor lapses.",
+    "score5_description": "Excellently organized; perfectly structured according to Wikipedia guidelines with clear, appropriate sections and headings, seamless logical flow."
   },
   {
     "criteria_description": "Relevance and Focus: Does the article stay on topic and maintain a clear focus",
@@ -24,19 +32,11 @@
     "score5_description": "Exceptionally focused and entirely on topic; the article is tightly centered on the subject, with every piece of information contributing to a comprehensive understanding of the topic."
   },
   {
-    "criteria_description": "Broad Coverage: Does the article provide an in-depth exploration of the topic and have good coverage?",
-    "score1_description": "Severely lacking; offers little to no coverage of the topic's primary aspects, resulting in a very narrow perspective.",
-    "score2_description": "Partial coverage; includes some of the topic's main aspects but misses others, resulting in an incomplete portrayal.",
-    "score3_description": "Acceptable breadth; covers most main aspects, though it may stray into minor unnecessary details or overlook some relevant points.",
-    "score4_description": "Good coverage; achieves broad coverage of the topic, hitting on all major points with minimal extraneous information.",
-    "score5_description": "Exemplary in breadth; delivers outstanding coverage, thoroughly detailing all crucial aspects of the topic without including irrelevant information."
-  },
-  {
-    "criteria_description": "Informativeness: Does the article provide a detailed exploration of the topic with substantial information, including relevant statistics, examples, and data?",
-    "score1_description": "Severely lacking; contains minimal information, offering few or no detailed examples, statistics, or data points to support the topic.",
-    "score2_description": "Somewhat informative; includes limited information with occasional statistics or examples but fails to provide a comprehensive understanding.",
-    "score3_description": "Moderately informative; provides a reasonable amount of detail with several statistics and examples, though it may miss some key data or context.",
-    "score4_description": "Highly informative; delivers a thorough exploration of the topic, with numerous relevant statistics, data points, and examples that support a strong understanding.",
-    "score5_description": "Exceptionally informative; offers a wealth of detailed information, thoroughly incorporating relevant statistics, examples, and data to provide a complete and insightful understanding of the topic."
+    "criteria_description": "Informativeness: Does the article provide a detailed exploration of the topic with substantial information, including relevant statistics, examples, and data while maintaining neutrality and encyclopedic tone?",
+    "score1_description": "Severely lacking; contains minimal information, offering few or no detailed examples, statistics, or data points to support the topic, making it incomplete or misleading.",
+    "score2_description": "Somewhat informative; includes limited information with occasional statistics or examples but fails to provide a comprehensive understanding of the topic, leaving out key details.",
+    "score3_description": "Moderately informative; provides a reasonable amount of detail with several statistics and examples, though it may miss some key data, context, or full coverage of the topic.",
+    "score4_description": "Highly informative; delivers a thorough exploration of the topic with numerous relevant statistics, examples, and data points, offering a strong understanding, though some areas may lack deeper context or balance.",
+    "score5_description": "Exceptionally informative; offers a wealth of detailed information, thoroughly incorporating relevant statistics, examples, and data, while presenting a complete, objective, and well-rounded view of the topic."
   }
 ]

@@ -1,0 +1,137 @@
+{
+  "bleu-2": {
+    "p_value": 0.6525287762699769,
+    "mean_difference": -0.0009990328203824186,
+    "mog_mean": 0.04931191463678807,
+    "baseline_mean": 0.05031094745717049,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "entity_recall": {
+    "p_value": 0.0034751814134475934,
+    "mean_difference": 0.05177129987832252,
+    "mog_mean": 0.3132543216165891,
+    "baseline_mean": 0.2614830217382666,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "bleu-1": {
+    "p_value": 0.9670063777576672,
+    "mean_difference": -0.008246135318361228,
+    "mog_mean": 0.08715029560186892,
+    "baseline_mean": 0.09539643092023015,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "rouge2_fmeasure": {
+    "p_value": 0.35703555540348164,
+    "mean_difference": 0.000621956916785231,
+    "mog_mean": 0.04065346629564048,
+    "baseline_mean": 0.040031509378855246,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "bleu-4": {
+    "p_value": 0.8246299683675786,
+    "mean_difference": -0.0008759628443467012,
+    "mog_mean": 0.014112729380698385,
+    "baseline_mean": 0.014988692225045086,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "rougeL_recall": {
+    "p_value": 0.0006279936012566392,
+    "mean_difference": 0.032793892597357654,
+    "mog_mean": 0.4096724003675357,
+    "baseline_mean": 0.37687850777017806,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "rouge1_fmeasure": {
+    "p_value": 0.794863400567536,
+    "mean_difference": -0.0045539132446252295,
+    "mog_mean": 0.13929629148142905,
+    "baseline_mean": 0.14385020472605428,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "rouge1_precision": {
+    "p_value": 0.8789656065632574,
+    "mean_difference": -0.0048686705684272275,
+    "mog_mean": 0.08610887501016407,
+    "baseline_mean": 0.09097754557859129,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "rougeL_precision": {
+    "p_value": 0.9950245815967779,
+    "mean_difference": -0.00503429139134777,
+    "mog_mean": 0.04323116108466007,
+    "baseline_mean": 0.04826545247600784,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "special_number_recall": {
+    "p_value": 0.0002807750158361926,
+    "mean_difference": 0.10448437381332121,
+    "mog_mean": 0.7017742841953369,
+    "baseline_mean": 0.5972899103820157,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "rouge2_recall": {
+    "p_value": 0.04218874684864183,
+    "mean_difference": 0.01647766153815755,
+    "mog_mean": 0.19022997084802565,
+    "baseline_mean": 0.1737523093098681,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "bleu-3": {
+    "p_value": 0.6794305619445331,
+    "mean_difference": -0.0006153857714036766,
+    "mog_mean": 0.026043166144886394,
+    "baseline_mean": 0.02665855191629007,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "rouge1_recall": {
+    "p_value": 7.353495694447109e-07,
+    "mean_difference": 0.06734163004766391,
+    "mog_mean": 0.6729424662705615,
+    "baseline_mean": 0.6056008362228976,
+    "significant": true,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  },
+  "rougeL_fmeasure": {
+    "p_value": 0.9920799447978136,
+    "mean_difference": -0.006401425248378265,
+    "mog_mean": 0.07110605661827361,
+    "baseline_mean": 0.07750748186665188,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "storm"
+  },
+  "rouge2_precision": {
+    "p_value": 0.4126058292746693,
+    "mean_difference": 0.00026666732834919327,
+    "mog_mean": 0.0248456655139583,
+    "baseline_mean": 0.024578998185609106,
+    "significant": false,
+    "sample_size": 100,
+    "best_baseline": "rag"
+  }
+}
