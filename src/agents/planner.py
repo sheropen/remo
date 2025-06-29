@@ -9,7 +9,8 @@ import re
 from agents.retriever import RetrieverAgent, Summarize
 from agents.writer import WriterAgent
 from memory import Memory
-from utils import Logger, Parser, Config
+from utils import Logger, Parser
+from config import Config
 from article import Outline
 
 logger = Logger("planner")
@@ -188,10 +189,14 @@ class Planner:
             )
             logger.info(f"Outline from memory: {self.outline_from_memory}")
 
-            refined_outline = self.refine_outline(
-                outline=self.outline_from_memory.to_dict()
-            ).outline
-            self.refined_outline = Outline.from_dict(refined_outline)
+            if self.outline_from_memory is not None:
+                refined_outline = self.refine_outline(
+                    outline=self.outline_from_memory.to_dict()
+                ).outline
+                self.refined_outline = Outline.from_dict(refined_outline)
+            else:
+                logger.warning("No outline generated from memory, creating empty outline")
+                self.refined_outline = Outline(title=self.topic)
 
             with open(f"{dir}/{Parser.safe_title(self.topic)}.json", "w") as f:
                 json.dump(self.refined_outline.to_dict(), f)
@@ -208,12 +213,20 @@ class Planner:
             logger.info(f"Loaded outline: {self.refined_outline}")
 
         # Final outline refinement and writing
-        flat_outline = self.memory.label_information(
-            parent_path=None, label_list=self.refined_outline.to_flatten_list()
-        )
-        self.refined_outline = Outline.from_flatten_list(flat_outline)
-        logger.info(f"Final outline after relabeling: {self.refined_outline}")
+        if self.refined_outline is not None:
+            flat_outline = self.memory.label_information(
+                parent_path="", label_list=self.refined_outline.to_flatten_list()
+            )
+            if flat_outline:
+                self.refined_outline = Outline.from_flatten_list(flat_outline)
+            logger.info(f"Final outline after relabeling: {self.refined_outline}")
+        else:
+            logger.error("No refined outline available")
+            return None
 
+        # Ensure refined_outline is not None before creating WriterAgent
+        assert self.refined_outline is not None, "Refined outline should not be None at this point"
+        
         wa = WriterAgent(
             topic=self.topic,
             outline=self.refined_outline,
@@ -283,19 +296,19 @@ class WriteOutline(dspy.Module):
     ):
         with dspy.settings.context(lm=self.engine):
             if current_outline is None:  # first run
-                current_outline = self.draft_outline(section_title=topic).outline
-                current_outline = json.loads(current_outline)["section_list"]
+                outline_response = self.draft_outline(section_title=topic).outline
+                current_outline_list = json.loads(outline_response)["section_list"]
             else:
-                current_outline = current_outline.to_flatten_list()
+                current_outline_list = current_outline.to_flatten_list()
 
             outline = self.rewrite_outline(
                 section_title=topic,
                 information_collected=memo,
-                current_outline=current_outline,
+                current_outline=current_outline_list,
             ).outline
-            outline = json.loads(outline)["section_list"]
+            outline_list = json.loads(outline)["section_list"]
 
-        return dspy.Prediction(outline_list=outline)
+        return dspy.Prediction(outline_list=outline_list)
 
 
 class OutlineRefiner(dspy.Signature):

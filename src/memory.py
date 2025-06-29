@@ -1,4 +1,4 @@
-import os
+import sys
 import chromadb
 from typing import List, Optional
 from collections import defaultdict
@@ -8,10 +8,12 @@ import numpy as np
 import dspy
 from pydantic import BaseModel
 from typing import Union
-import json
-import concurrent.futures
 
-from utils import Parser, Logger, Config
+
+sys.path.append("..")
+
+from utils import Parser, Logger
+from config import Config
 
 logger = Logger("memory")
 
@@ -34,8 +36,7 @@ class Memory:
         self,
         topic: str,
         config: Config,
-        name: str = None,
-        engine: Union[dspy.dsp.LM, dspy.dsp.HFModel] = None,
+        engine: Optional[Union[dspy.dsp.LM, dspy.dsp.HFModel]] = None,
         force_recreate: bool = False,
     ):
         super().__init__()
@@ -43,27 +44,16 @@ class Memory:
         self.config = config
         self.engine = engine
 
-        if name is None:
-            dir = os.path.join(config.DATABASE_DIR, "default")
-        else:
-            dir = os.path.join(config.DATABASE_DIR, name)
-
-        self.chroma_client = chromadb.PersistentClient(dir)
-
-        sentence_transformer_ef = (
-            chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=config.EMBEDDING_MODEL
-            )
-        )
+        self.chroma_client = chromadb.PersistentClient(config.DATABASE_DIR)
 
         collection_name = Parser.safe_title(self.topic)
         self.collection = self.chroma_client.get_or_create_collection(
-            name=collection_name, embedding_function=sentence_transformer_ef
+            name=collection_name
         )
         if force_recreate:
             self.chroma_client.delete_collection(collection_name)
             self.collection = self.chroma_client.get_or_create_collection(
-                name=collection_name, embedding_function=sentence_transformer_ef
+                name=collection_name
             )
 
     def add_information(
@@ -71,11 +61,12 @@ class Memory:
         memory_unit: MemoryUnit,
         custom_metadata: Optional[dict] = None,
         skip_similar: bool = True,
-    ) -> bool:
+    ):
         query_result = self.collection.query(
             query_texts=[memory_unit.content], n_results=1
         )
-        if skip_similar and len(query_result["ids"][0]) > 0:
+        if (skip_similar and query_result["ids"] and len(query_result["ids"][0]) > 0 
+            and query_result["documents"] and query_result["distances"]):
             content, distance = (
                 query_result["documents"][0][0],
                 query_result["distances"][0][0],
@@ -114,9 +105,14 @@ class Memory:
 
     def update_information(self, constraint: dict, new_metadata: dict):
         batch = self.collection.get(where=constraint)
+        if not batch["metadatas"]:
+            return
+        updated_metadatas = []
         for metadata in batch["metadatas"]:
-            metadata.update(new_metadata)
-        self.collection.update(ids=batch["ids"], metadatas=batch["metadatas"])
+            metadata_dict = dict(metadata) if metadata else {}
+            metadata_dict.update(new_metadata)
+            updated_metadatas.append(metadata_dict)
+        self.collection.update(ids=batch["ids"], metadatas=updated_metadatas)
 
     def count_information(self, constraint: Optional[dict] = None):
         if constraint is None:
@@ -126,7 +122,7 @@ class Memory:
             return len(matching_items["ids"])
 
     def retrieve_information(
-        self, query: str, k: int = 5, constraint: dict = None
+        self, query: str, k: int = 5, constraint: Optional[dict] = None
     ) -> List[MemoryUnit]:
         query_result = self.collection.query(
             query_texts=[query],
@@ -137,13 +133,15 @@ class Memory:
             f"Retrieved {len(query_result['ids'][0])} information for \"{query}\"."
         )
         memory_unit_list = []
-        for idx in range(len(query_result["ids"][0])):
-            memory_unit = MemoryUnit(
-                uuid=query_result["ids"][0][idx],
-                content=query_result["documents"][0][idx],
-                url=query_result["metadatas"][0][idx]["url"],
-            )
-            memory_unit_list.append(memory_unit)
+        if (query_result["documents"] and query_result["metadatas"] and 
+            query_result["ids"] and len(query_result["ids"][0]) > 0):
+            for idx in range(len(query_result["ids"][0])):
+                memory_unit = MemoryUnit(
+                    uuid=query_result["ids"][0][idx],
+                    content=query_result["documents"][0][idx],
+                    url=str(query_result["metadatas"][0][idx]["url"]),
+                )
+                memory_unit_list.append(memory_unit)
 
         return memory_unit_list
 
@@ -172,6 +170,8 @@ class Memory:
 
         # Group documents by cluster
         clusters = defaultdict(list)
+        if not memory_unit_list["documents"]:
+            return clusters
         for i, memory_content in enumerate(memory_unit_list["documents"]):
             clusters[cluster_labels[i]].append(memory_content)
 
@@ -200,16 +200,27 @@ class Memory:
     def label_information(
         self, parent_path: str, label_list: list[str], constraint: Optional[dict] = None
     ):
+        # Check if label_list is empty
+        if not label_list:
+            logger.info("Empty label list provided, returning empty list")
+            return []
+
         memory_unit_list = self.collection.get(
             where=constraint, include=["documents", "embeddings", "metadatas"]
         )
 
         # Embed labels
+        if not self.collection._embedding_function:
+            logger.error("Embedding function not available")
+            return []
         label_embeddings = self.collection._embedding_function(label_list)
 
         # First pass: Initial allocation
         allocated_tags = []
         label_counts = {}
+        if not memory_unit_list["embeddings"]:
+            logger.error("No embeddings available")
+            return []
         for doc_embedding in memory_unit_list["embeddings"]:
             similarities = [
                 np.dot(doc_embedding, label_emb) for label_emb in label_embeddings
@@ -233,14 +244,20 @@ class Memory:
         labels_to_discard = set(label_list) - set(labels_to_keep)
 
         # Second pass: Reallocate facts from discarded labels
+        if not memory_unit_list["metadatas"]:
+            logger.error("No metadata available")
+            return []
+        updated_metadatas = []
         for tags, metadata in zip(allocated_tags, memory_unit_list["metadatas"]):
             tag = next((tag for tag in tags if tag in labels_to_keep), tags[0])
-            metadata["tag"] = f"{parent_path}//{tag}" if parent_path else tag
+            metadata_dict = dict(metadata) if metadata else {}
+            metadata_dict["tag"] = f"{parent_path}//{tag}" if parent_path else tag
+            updated_metadatas.append(metadata_dict)
 
         # Update the collection
         self.collection.update(
             ids=memory_unit_list["ids"],
-            metadatas=memory_unit_list["metadatas"],
+            metadatas=updated_metadatas,
         )
 
         # Log the final memory unit counts

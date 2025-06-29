@@ -9,7 +9,8 @@ from pydantic import BaseModel
 
 
 from memory import Memory, MemoryUnit
-from utils import WebsiteContentProcessor, Parser, Logger, Config
+from utils import WebsiteContentProcessor, Parser, Logger
+from config import Config
 
 logger = Logger("retriever")
 

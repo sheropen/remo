@@ -1,14 +1,12 @@
 import concurrent.futures
 import dspy
 from typing import Union, Optional
-import json
 from memory import Memory
 from article import Outline, Article
-from utils import Logger, Config
-from pydantic import BaseModel
+from utils import Logger
+from config import Config
 
 logger = Logger(__name__)
-
 
 class WriterAgent:
     def __init__(

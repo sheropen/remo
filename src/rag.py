@@ -11,7 +11,8 @@ import os.path
 from article import Article, Outline
 from agents.retriever import ValueSERPHandler
 from memory import Memory, MemoryUnit
-from utils import Logger, Parser, Config
+from utils import Logger, Parser
+from config import Config
 from lm import OpenAILM
 
 logger = Logger("baseline")
@@ -72,19 +73,19 @@ class WriteOutline(dspy.Module):
     ):
         with dspy.settings.context(lm=self.engine):
             if current_outline is None:  # first run
-                current_outline = self.draft_outline(section_title=topic).outline
-                current_outline = json.loads(current_outline)["section_list"]
+                outline_result = self.draft_outline(section_title=topic).outline
+                outline_list = json.loads(str(outline_result))["section_list"]
             else:
-                current_outline = current_outline.to_flatten_list()
+                outline_list = current_outline.to_flatten_list()
 
             outline = self.rewrite_outline(
                 section_title=topic,
                 information_collected=memo,
-                current_outline=current_outline,
+                current_outline=outline_list,
             ).outline
-            outline = json.loads(outline)["section_list"]
+            outline_list = json.loads(str(outline))["section_list"]
 
-        return dspy.Prediction(outline_list=outline)
+        return dspy.Prediction(outline_list=outline_list)
 
 
 # Adapted from STORM-NAACL 2024
@@ -133,7 +134,7 @@ class RAG:
         self.topic = topic
         self.config = config
         self.memory = Memory(
-            topic=topic, config=config, name="rag", force_recreate=True
+            topic=topic, config=config, force_recreate=True
         )
         self.url_set = set()
 
@@ -236,7 +237,7 @@ class RAG:
 
 
 def main(args):
-    config = Config("config.toml")
+    config = Config()
 
     with open(args.file_path, "r") as f:
         topics = f.readlines()
