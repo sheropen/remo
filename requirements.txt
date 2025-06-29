@@ -9,3 +9,4 @@ python-dotenv==1.0.1
 bidict==0.23.1
 pypinyin==0.54.0
 posthog==3.25.0
+wikipedia-api==0.8.1
