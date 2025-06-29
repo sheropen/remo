@@ -1,5 +1,7 @@
 from collections import defaultdict
 from typing import List
+
+from dsp import Optional
 from memory import MemoryUnit
 import json
 import os
@@ -97,7 +99,7 @@ class Sentence:
     def __init__(
         self,
         content: str,
-        proposition: str = None,
+        proposition: Optional[str] = None,
         citation_list: List[MemoryUnit] = [],
         doc_id_list: List[int] = [],
         keep_citation_numbers: bool = False,
@@ -387,7 +389,7 @@ class Article:
         with open(
             f"{get_dir('raw_txt')}/{Parser.safe_title(self.title)}.txt", "w"
         ) as f:
-            f.write(self.__repr__())
+            f.write(self.__repr__(show_lead_section=True))
 
         # Save as cleaned text
         with open(
