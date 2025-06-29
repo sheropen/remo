@@ -62,7 +62,7 @@ def process_article(title: str, output_dir: Path) -> bool:
                 article.add_subsection(get_section(section))
 
         # Save article
-        article.save_file(output_dir)
+        article.save_file(str(output_dir))
         logging.info(f"Successfully saved article: {title}")
         return True
 
