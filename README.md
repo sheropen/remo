@@ -30,7 +30,6 @@
      - Model names and token limits
      - Output directories and paths
      - Search and memory parameters
-     - Writing depth and clustering thresholds
 
 ## Usage
 
