@@ -177,7 +177,7 @@ class Memory:
 
         # Remove clusters with less than 3 facts
         if skip_small_cluster == True:
-            clusters = {k: v for k, v in clusters.items() if len(v) >= 3}
+            clusters = {k: v for k, v in clusters.items() if len(v) >= self.config.MIN_MEMORY_UNIT_PER_CLUSTER}
 
         # Sort clusters by their keys
         clusters = dict(sorted(clusters.items()))
@@ -221,7 +221,7 @@ class Memory:
 
         # Identify labels to keep
         labels_to_keep = [
-            label for label in label_list if label_counts.get(label, 0) >= 5
+            label for label in label_list if label_counts.get(label, 0) >= self.config.MIN_MEMORY_UNIT_PER_SECTION
         ]
 
         if len(labels_to_keep) == 1:

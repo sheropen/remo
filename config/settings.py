@@ -26,6 +26,8 @@ class Config:
 
         # Memory
         self.EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+        self.MIN_MEMORY_UNIT_PER_CLUSTER = 3
+        self.MIN_MEMORY_UNIT_PER_SECTION = 5
         self.SIMILARITY_THRESHOLD = 0.05
 
         # CONSTANTS
