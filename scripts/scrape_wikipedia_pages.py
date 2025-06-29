@@ -80,7 +80,7 @@ def main():
         help="Input file containing topic list",
     )
     parser.add_argument(
-        "-o", "--output", default="data/dataset", help="Output directory for JSON files"
+        "-o", "--output", default="dataset", help="Output directory for JSON files"
     )
     args = parser.parse_args()
 
