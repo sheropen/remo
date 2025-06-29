@@ -10,7 +10,8 @@ import concurrent.futures
 import argparse
 
 sys.path.append("./src")
-from utils import Config
+sys.path.append(".")
+from config import Config
 from article import Article
 from lm import OpenAILM
 
@@ -258,7 +259,7 @@ def compute_autoais(
 
 
 def process_folder(folder_path, use_proposition=True):
-    config = Config(config_path="config.toml")
+    config = Config()
 
     # Create eval/citation directory if it doesn't exist
     output_folder_path = os.path.join(folder_path, "eval", "citation")

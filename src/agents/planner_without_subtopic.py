@@ -9,7 +9,8 @@ import re
 from agents.retriever import RetrieverAgent, Summarize
 from agents.writer import WriterAgent
 from memory import Memory
-from utils import Logger, Parser, Config
+from utils import Logger, Parser
+from config import Config
 from article import Outline
 
 logger = Logger("planner")

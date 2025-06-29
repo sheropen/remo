@@ -2,12 +2,15 @@ import sys
 from pathlib import Path
 import dspy
 import os
+import argparse
 from tqdm import tqdm
 
 # Add project path to system path
-sys.path.append("/home/junhao/projects/mog/src")
+sys.path.append("./src")
+sys.path.append(".")
 from article import Article
-from utils import Parser, Config
+from utils import Parser
+from config import Config
 from lm import OpenAILM
 
 
@@ -141,13 +144,29 @@ def refine_article(article):
 
 
 def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Refine articles by improving coherence and writing")
+    parser.add_argument(
+        "input_dir",
+        type=str,
+        help="Input directory containing JSON files to refine"
+    )
+    parser.add_argument(
+        "output_dir",
+        type=str,
+        help="Output directory for refined articles"
+    )
+    
+    args = parser.parse_args()
+    
     # Setup paths
-    input_dir = Path(
-        "/home/junhao/projects/mog/data/output/mix_wiki/mog_wo_mo/json"
-    )
-    output_dir = Path(
-        "/home/junhao/projects/mog/data/output/mix_wiki/mog_wo_mo-p"
-    )
+    input_dir = Path(args.input_dir)
+    output_dir = Path(args.output_dir)
+    
+    if not input_dir.exists():
+        print(f"Error: Input directory {input_dir} does not exist")
+        sys.exit(1)
+    
     output_dir.mkdir(exist_ok=True)
 
     # Setup language model
@@ -162,9 +181,9 @@ def main():
 
     for article_file in tqdm(article_files, desc="Processing articles"):
         try:
-            article = Article.from_json(article_file)
+            article = Article.from_json(str(article_file))
             output_path = os.path.join(
-                output_dir,
+                str(output_dir),
                 "clean_txt",
                 f"{Parser.safe_title(article.title)}.txt",
             )
@@ -177,7 +196,7 @@ def main():
             refined_article, failed = refine_article(article)
             total_failed += failed
 
-            refined_article.save_file(output_dir)
+            refined_article.save_file(str(output_dir))
 
         except Exception as e:
             print(f"Error processing {article_file}: {str(e)}")

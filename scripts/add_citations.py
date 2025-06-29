@@ -5,9 +5,11 @@ import os
 from tqdm import tqdm
 
 # Add project path to system path
-sys.path.append("/home/junhao/projects/mog/src")
+sys.path.append("./src")
+sys.path.append(".")
 from article import Article
-from utils import Config, Parser
+from utils import Parser
+from config import Config
 from lm import OpenAILM
 
 
@@ -142,7 +144,7 @@ def main():
     for article_file in tqdm(article_files, desc="Processing articles"):
         try:
             # Load article
-            article = Article.from_json(article_file)
+            article = Article.from_json(str(article_file))
 
             # Process article and get statistics
             total_sentences, uncited_sentences = find_citations_for_section(
@@ -152,7 +154,7 @@ def main():
             uncited_sentences_all += uncited_sentences
 
             # Save processed article
-            article.save_file(output_dir)
+            article.save_file(str(output_dir))
 
             # Print individual article statistics
             citation_ratio = (

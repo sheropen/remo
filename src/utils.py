@@ -1,15 +1,20 @@
 import re
 import os
+import sys
 import logging
 import toml
-from typing import List, Dict
+from typing import List, Dict, TYPE_CHECKING, Optional
 import httpx
 import concurrent.futures
 import hashlib
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from trafilatura import extract
 from nltk.tokenize import sent_tokenize, word_tokenize
+from pypinyin import lazy_pinyin
 
+sys.path.append(".")
+
+from config import Config
 
 class Logger:
     def __init__(
@@ -52,46 +57,45 @@ class Logger:
         return ch
 
 
-class Config:
-    def __init__(self, config_path="config.toml", secret_path="secret.toml"):
-        self.load_config(config_path=config_path)
-        self.load_secret(secret_path=secret_path)
 
-    def load_secret(self, secret_path):
-        with open(secret_path, "r") as file:
-            data = toml.load(file)
-        for key, value in data.items():
-            os.environ[key] = str(value)
-
-    def load_config(self, config_path):
-        with open(config_path, "r") as f:
-            config_data = toml.load(f)
-
-        for key, value in config_data.items():
-            if key.endswith("_DIR"):
-                os.makedirs(value, exist_ok=True)
-            setattr(self, key, value)
 
 
 class Parser:
     @staticmethod
+    def to_hash(text: str) -> str:
+        hash_obj = hashlib.sha256(text.encode("utf-8"))
+        return hash_obj.hexdigest()
+    
+    @staticmethod
     def safe_title(title: str) -> str:
         """Sanitize a title string to be safe for use as a collection/file name."""
 
+        # Convert Chinese characters to pinyin while preserving English
+        parts = []
+        current_part = []
+
+        for char in title:
+            if "\u4e00" <= char <= "\u9fff":  # Chinese character range
+                if current_part:
+                    parts.append("".join(current_part))
+                    current_part = []
+                parts.extend(lazy_pinyin(char))
+            else:
+                current_part.append(char)
+
+        if current_part:
+            parts.append("".join(current_part))
+
+        pinyin_str = "_".join(parts)
+
         # Replace any non-alphanumeric chars (except underscore) with underscore
-        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
+        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", pinyin_str)
 
         # Remove any leading/trailing underscores
         sanitized = sanitized.strip("_")
 
         # maximum 60 characters for collection name
         return sanitized[:60]
-
-    @staticmethod
-    def generate_hash_filename(input_string: str) -> str:
-        """Generate a SHA-256 hash filename from an input string."""
-        hashed = hashlib.sha256(input_string.encode()).hexdigest()
-        return hashed
 
     @staticmethod
     def split_doc_into_chunks(document, max_chunk_len=1000):
@@ -152,7 +156,7 @@ class WebsiteContentProcessor:
         min_content_length: int = 150,
         content_chunk_size: int = 1000,
         max_concurrent_requests: int = 10,
-        config: Config = Config,
+        config: Optional["Config"] = None,
     ):
         """
         Args:
@@ -160,6 +164,9 @@ class WebsiteContentProcessor:
             content_chunk_size: Maximum character count for each content chunk.
             max_concurrent_requests: Maximum number of concurrent requests for downloading webpages.
         """
+        if config is None:
+            from config import Config
+            config = Config()
         self.config = config
         self.http_client = httpx.Client(verify=False)
         self.min_content_length = min_content_length
@@ -186,7 +193,7 @@ class WebsiteContentProcessor:
 
     def fetch_webpage(self, url: str):
         cached_page_path = os.path.join(
-            self.config.WEBPAGE_DIR, f"{Parser.generate_hash_filename(url)}.html"
+            self.config.WEBPAGE_DIR, f"{Parser.to_hash(url)}.html"
         )
         if os.path.exists(cached_page_path):
             with open(cached_page_path, "r") as f:
