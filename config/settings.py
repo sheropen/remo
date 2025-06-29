@@ -3,6 +3,11 @@ from dotenv import load_dotenv
 
 class Config:
     def __init__(self):
+        # LM
+        self.MODEL_NAME = "gpt-4o-mini-2024-07-18"
+        self.BETTER_MODEL_NAME = "gpt-4o-2024-08-06"
+        self.MAX_TOKENS = 4000
+        
         # PATH
         self.DATABASE_DIR = "data/chroma"
         self.SERP_DIR = "data/serp"

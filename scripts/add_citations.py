@@ -131,8 +131,8 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     # Setup models
-    lm = setup_language_model("gpt-4o-mini-2024-07-18", 4000)
-    better_lm = setup_language_model("gpt-4o-2024-08-06", 4000)
+    lm = setup_language_model(config.MODEL_NAME, config.MAX_TOKENS)
+    better_lm = setup_language_model(config.BETTER_MODEL_NAME, config.MAX_TOKENS)
     citation_finder = dspy.Predict(CitationFinder)
 
     # Track total statistics

@@ -243,10 +243,10 @@ def main(args):
         topics = f.readlines()
 
     lm = OpenAILM(
-        model="gpt-4o-mini-2024-07-18",
+        model=config.MODEL_NAME,
         api_key=os.environ["OPENAI_API_KEY"],
         base_url=os.environ["OPENAI_BASE_URL"],
-        max_tokens=4000,
+        max_tokens=config.MAX_TOKENS,
         support_structured_response=True,
     )
 
