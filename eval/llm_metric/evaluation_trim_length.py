@@ -1,3 +1,4 @@
+# Acknowledgement: This part of code is adapted from https://github.com/stanford-oval/storm.
 import re
 
 trimmed_message = "[content omitted]"
