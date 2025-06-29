@@ -11,7 +11,7 @@ from utils import Parser
 
 class Outline:
     def __init__(self, title: str, layer: int = 0):
-        self.title: str = title
+        self.title: str = Parser.parse_section_name(title)
         self.layer: int = layer
         self.children: List["Outline"] = []
 
@@ -100,8 +100,12 @@ class Sentence:
         proposition: str = None,
         citation_list: List[MemoryUnit] = [],
         doc_id_list: List[int] = [],
+        keep_citation_numbers: bool = False,
     ):
-        self.content = content
+        if keep_citation_numbers:
+            self.content = content
+        else:
+            self.content = Parser.remove_citation_number(content)
         self.proposition = proposition
         self.citation_list = citation_list
         self.doc_id_list = doc_id_list
@@ -111,14 +115,7 @@ class Sentence:
         if self.doc_id_list is None:
             return self.content
 
-        content_without_citations = self.content
-        while match := re.search(r"\[\d+\]", content_without_citations):
-            start, end = match.span()
-            content_without_citations = (
-                content_without_citations[:start] + content_without_citations[end:]
-            )
-
-        result = content_without_citations.strip()
+        result = Parser.remove_citation_number(self.content).strip()
 
         if show_citation_numbers and self.doc_id_list:
             unique_doc_ids = sorted(set(self.doc_id_list))
@@ -132,7 +129,7 @@ class Sentence:
 
     def to_dict(self):
         return {
-            "content": self.content,
+            "content": Parser.remove_citation_number(self.content),
             "citation_list": [citation.to_dict() for citation in self.citation_list],
             "proposition": self.proposition,
         }
@@ -164,7 +161,7 @@ class Article:
         self, title: str, layer: int = 0, working_context: List[MemoryUnit] = []
     ):
         # Basic article properties
-        self.title = title
+        self.title = Parser.parse_section_name(title.split("//")[-1])
         self.layer = layer
         self.working_context = working_context
 
@@ -227,11 +224,17 @@ class Article:
 
     @classmethod
     def from_text(
-        cls, title: str, text: str, layer: int, working_context: List[MemoryUnit] = []
+        cls,
+        title: str,
+        text: str,
+        layer: int,
+        working_context: List[MemoryUnit] = [],
+        keep_citation_numbers: bool = False,
     ) -> "Article":
         """Creates an Article instance from formatted text."""
         article = cls(title=title, layer=layer, working_context=working_context)
-        paragraph_list = text.strip().split("\n\n")
+        paragraph_list = text.strip().split("\n")
+        paragraph_list = [para for para in paragraph_list if para.strip()]
 
         i = 0
         while i < len(paragraph_list):
@@ -285,7 +288,12 @@ class Article:
                         processed_sentences.append(sentence_text)
 
                 for sentence_text in processed_sentences:
-                    paragraph.add_sentence(Sentence(content=sentence_text))
+                    paragraph.add_sentence(
+                        Sentence(
+                            content=sentence_text,
+                            keep_citation_numbers=keep_citation_numbers,
+                        )
+                    )
                 article.add_paragraph(paragraph)
                 i += 1
 
@@ -367,7 +375,7 @@ class Article:
         return result
 
     def save_file(self, output_dir: str):
-        """Saves the article in multiple formats (txt, md, json)."""
+        """Saves the article in multiple formats (raw_txt, json, clean_txt)."""
 
         def get_dir(format: str) -> str:
             output_format_dir = os.path.join(output_dir, format)

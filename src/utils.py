@@ -82,7 +82,10 @@ class Parser:
         sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
 
         # Remove any leading/trailing underscores
-        return sanitized.strip("_")
+        sanitized = sanitized.strip("_")
+
+        # maximum 60 characters for collection name
+        return sanitized[:60]
 
     @staticmethod
     def generate_hash_filename(input_string: str) -> str:
@@ -127,6 +130,15 @@ class Parser:
             chunks.append(" ".join(current_chunk))
 
         return chunks
+
+    @staticmethod
+    def remove_citation_number(text: str) -> str:
+        return re.sub(r"\s*\[\d+\]", "", text)
+
+    @staticmethod
+    def parse_section_name(section_name: str) -> str:
+        """Remove the number and dot from the section name"""
+        return re.sub(r"^\d+\.\s*", "", section_name)
 
 
 class WebsiteContentProcessor:
@@ -201,12 +213,16 @@ class WebsiteContentProcessor:
         for content, url in zip(webpage_contents, urls):
             if content is None:
                 continue
-            article_text = extract(
-                content,
-                include_tables=False,
-                include_comments=False,
-                output_format="text",
-            )
+            try:
+                article_text = extract(
+                    content,
+                    include_tables=False,
+                    include_comments=False,
+                    output_format="text",
+                )
+            except Exception as e:
+                print(f"Error extracting article from {url}: {e}")
+                continue
             if article_text is not None and len(article_text) > self.min_content_length:
                 extracted_articles[url] = {"text": article_text}
 
@@ -215,6 +231,8 @@ class WebsiteContentProcessor:
     def extract_content_chunks(self, urls: List[str]) -> Dict:
         articles = self.extract_articles(urls)
         for url in articles:
-            articles[url]["snippets"] = self.content_splitter.split_text(articles[url]["text"])
+            articles[url]["snippets"] = self.content_splitter.split_text(
+                articles[url]["text"]
+            )
 
         return articles

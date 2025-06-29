@@ -36,6 +36,7 @@ class Memory:
         config: Config,
         name: str = None,
         engine: Union[dspy.dsp.LM, dspy.dsp.HFModel] = None,
+        force_recreate: bool = False,
     ):
         super().__init__()
         self.topic = topic
@@ -59,14 +60,22 @@ class Memory:
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name, embedding_function=sentence_transformer_ef
         )
+        if force_recreate:
+            self.chroma_client.delete_collection(collection_name)
+            self.collection = self.chroma_client.get_or_create_collection(
+                name=collection_name, embedding_function=sentence_transformer_ef
+            )
 
     def add_information(
-        self, memory_unit: MemoryUnit, custom_metadata: Optional[dict] = None
+        self,
+        memory_unit: MemoryUnit,
+        custom_metadata: Optional[dict] = None,
+        skip_similar: bool = True,
     ) -> bool:
         query_result = self.collection.query(
             query_texts=[memory_unit.content], n_results=1
         )
-        if len(query_result["ids"][0]) > 0:
+        if skip_similar and len(query_result["ids"][0]) > 0:
             content, distance = (
                 query_result["documents"][0][0],
                 query_result["distances"][0][0],
@@ -87,11 +96,16 @@ class Memory:
         logger.info(f'"{memory_unit.content}" added to the memory.')
 
     def add_information_in_batch(
-        self, memory_unit_list: List[MemoryUnit], custom_metadata: Optional[dict] = None
+        self,
+        memory_unit_list: List[MemoryUnit],
+        custom_metadata: Optional[dict] = None,
+        skip_similar: bool = True,
     ):
         for memory_unit in memory_unit_list:
             self.add_information(
-                memory_unit=memory_unit, custom_metadata=custom_metadata
+                memory_unit=memory_unit,
+                custom_metadata=custom_metadata,
+                skip_similar=skip_similar,
             )
 
     def remove_information(self, uuid: str):

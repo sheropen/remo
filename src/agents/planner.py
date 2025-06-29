@@ -62,11 +62,7 @@ class Planner:
             current_outline=current_outline,
         ).outline_list
 
-        # Clean section names and add valid ones to outline
-        def parse_section_name(section_name: str) -> str:
-            return re.sub(r"^\d+\.\s*", "", section_name)
-
-        parsed_outline_list = [parse_section_name(name) for name in outline_list]
+        parsed_outline_list = [Parser.parse_section_name(name) for name in outline_list]
         for section_name in parsed_outline_list:
             if section_name.lower() not in self.config.EXCLUDE_SECTION_LIST:
                 outline.create_child(section_name)
@@ -87,7 +83,7 @@ class Planner:
             section_memo_list = ra.research(section_name, self.summary)
             logger.info(f"Memo for section {section_name}: {section_memo_list}")
             return section_memo_list
-
+ 
         # Collect information for all sections in parallel
         memo_list = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
