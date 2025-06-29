@@ -2,7 +2,7 @@
 DATABASE_DIR = "data/chroma"
 SERP_DIR = "data/serp"
 WEBPAGE_DIR = "data/webpage"
-OUTPUT_DIR = "data/output/fresh_wiki/mog"
+OUTPUT_DIR = "data/output/mix_wiki/mog_wo_mo"
 LOG_DIR = "log"
 
 
